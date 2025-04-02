@@ -1,13 +1,16 @@
 export interface SimulationSettings {
-  numberOfLanes: number;
-  numberOfFloors: number;
-  peopleFlowRate: number;
-  elevatorSpeed: number;
-  elevatorCapacity: number;
+    numberOfLanes: number;
+    numberOfFloors: number;
+    peopleFlowRate: number;
+    elevatorSpeed: number;
+    elevatorCapacity: number;
 }
 
 export interface SimulationStatistics {
-  averageWaitTime: number;
-  totalPeopleServed: number;
-  efficiencyScore: number;
+    warmupActive: boolean;
+    warmupTimeLeft: number;
+    averageWaitTime: number;
+    totalPeopleServed: number;
+    peopleWhoGaveUp: number; // Add this missing property
+    efficiencyScore: number;
 }

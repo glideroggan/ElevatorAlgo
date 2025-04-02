@@ -23,6 +23,9 @@ const sketch = (p: p5) => {
     const canvas = p.createCanvas(canvasWidth, canvasHeight);
     canvas.parent('canvas-container');
     
+    // Set framerate to 60 FPS to limit CPU usage
+    p.frameRate(60);
+    
     // Initialize the UI controller
     uiController = new UIController();
     

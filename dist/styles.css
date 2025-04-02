@@ -14,7 +14,7 @@ body {
 
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  /* margin: 0 auto; */
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -127,47 +127,65 @@ h2 {
   font-weight: bold;
 }
 
-/* Elevator status table styles */
-table {
-  width: 100%;
-  border-collapse: collapse;
+/* Elevator grid styles - fixed capacity bar */
+.elevator-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   margin-top: 10px;
 }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+.elevator-grid-header, .elevator-grid-row {
+  display: grid;
+  grid-template-columns: 60px 120px 60px 1fr;
+  gap: 8px;
+  padding: 8px 4px;
+  align-items: center;
 }
 
-th {
-  background-color: #f2f2f2;
+.elevator-grid-header {
   font-weight: bold;
+  background-color: #f2f2f2;
+  border-bottom: 1px solid #ddd;
 }
 
-/* State color classes */
+.elevator-grid-row {
+  border-bottom: 1px solid #eee;
+}
+
+.id-cell, .state-cell, .floor-cell, .capacity-cell {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.state-cell {
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* State color classes - updated for grid */
 .state-idle { background-color: #999999; }
 .state-moving_up { background-color: #00FF00; }
 .state-moving_down { background-color: #FF0000; }
 .state-loading { background-color: #FFFF00; }
 .state-repair { background-color: #800080; color: white; }
 
-/* Capacity bar */
+/* Capacity bar - fixed styles */
 .capacity-bar {
-  width: 80%;
+  width: 100%;
   height: 8px;
   background-color: #eee;
   border-radius: 4px;
   overflow: hidden;
-  display: inline-block;
-  margin-left: 5px;
-  vertical-align: middle;
+  margin-top: 3px;
 }
 
 .capacity-fill {
   height: 100%;
+  width: 0%; /* Will be set dynamically */
   background-color: green;
-  border-radius: 4px;
 }
 
 /* Legend styles */
@@ -194,6 +212,15 @@ th {
   font-size: 0.9rem;
 }
 
+/* Warmup status styling */
+#efficiency-status.warmup {
+  background-color: #ffea8a;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #7d6c00;
+  font-weight: bold;
+}
+
 /* Make the layout responsive */
 @media (max-width: 1100px) {
   .simulation-section {
@@ -208,5 +235,179 @@ th {
   
   .stats-section {
     flex-direction: column;
+  }
+}
+
+/* Add these styles for the results section */
+
+.results-section {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.results-panel {
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-panel h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.results-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+  padding: 4px 6px; /* More compact padding */
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.85rem; /* Smaller font */
+  vertical-align: top;
+  line-height: 1.2;
+}
+
+.results-table th {
+  background-color: #f2f2f2;
+  position: sticky;
+  top: 0;
+}
+
+.results-table .high-score {
+  color: green;
+  font-weight: bold;
+}
+
+.results-table .no-results {
+  text-align: center;
+  font-style: italic;
+  color: #888;
+}
+
+/* Config details in results table */
+.config-details {
+  font-size: 0.75rem;
+  line-height: 1.1;
+  margin-top: 1px;
+  color: #666;
+}
+
+/* Make sorting by score more visible */
+.results-table .score {
+  font-weight: bold;
+}
+
+/* Add a visual indicator of algorithm performance */
+.results-table tr:nth-child(1) .score::after {
+  content: " 🥇";
+}
+.results-table tr:nth-child(2) .score::after {
+  content: " 🥈";
+}
+.results-table tr:nth-child(3) .score::after {
+  content: " 🥉";
+}
+
+.small-button {
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.small-button:hover {
+  background-color: #d32f2f;
+}
+
+/* Responsive layout - results on right for larger screens */
+@media (min-width: 1400px) {
+  .container {
+    display: grid;
+    grid-template-columns: 1fr minmax(350px, 30%); /* More flexible sizing */
+    grid-template-rows: auto auto;
+    grid-template-areas: 
+      "simulation results"
+      "stats results";
+    gap: 20px;
+  }
+  
+  .simulation-section {
+    grid-area: simulation;
+    margin-bottom: 15px;
+  }
+  
+  .stats-section {
+    grid-area: stats;
+  }
+  
+  .results-section {
+    grid-area: results;
+    margin-top: 0;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+  
+  /* Left-align content in wider layouts */
+  .controls, .stats, .legend, .elevator-status, .results-panel {
+    text-align: left;
+  }
+  
+  /* Add left-aligned headings */
+  .results-panel h2, .stats h2, .legend h2, .controls h2, .elevator-status h2 {
+    text-align: left;
+  }
+  
+  /* Make the results table more compact and flexible */
+  .results-table {
+    width: 100%;
+    table-layout: fixed; /* For better column width control */
+  }
+  
+  .results-table th,
+  .results-table td {
+    padding: 3px 5px; /* Even more compact padding */
+    font-size: 0.82rem; /* Smaller font */
+  }
+  
+  /* Adjust column widths for results table with more flexibility */
+  .results-table th:nth-child(1), .results-table td:nth-child(1) { width: 20%; } /* Time */
+  .results-table th:nth-child(2), .results-table td:nth-child(2) { width: 18%; } /* Algorithm */
+  .results-table th:nth-child(3), .results-table td:nth-child(3) { width: 25%; } /* Config */
+  .results-table th:nth-child(4), .results-table td:nth-child(4) { width: 12%; } /* People */
+  .results-table th:nth-child(5), .results-table td:nth-child(5) { width: 15%; } /* Avg Wait */
+  .results-table th:nth-child(6), .results-table td:nth-child(6) { width: 10%; } /* Score */
+}
+
+/* For even larger screens, use more flexible layout */
+@media (min-width: 1800px) {
+  .container {
+    grid-template-columns: 1fr minmax(400px, 40%); /* Allow results to grow more on wider screens */
+  }
+  
+  .results-table th, 
+  .results-table td {
+    padding: 4px 8px; /* More breathing room on larger screens */
+  }
+}
+
+/* Make .config-details even smaller in wide layouts */
+@media (min-width: 1400px) {
+  .config-details {
+    font-size: 0.7rem;
+    line-height: 1;
   }
 }

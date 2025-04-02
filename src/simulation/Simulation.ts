@@ -1,6 +1,9 @@
 import p5 from 'p5';
 import { Building } from '../models/Building';
 import { SimulationSettings, SimulationStatistics } from '../models/SimulationSettings';
+import { SimplePlayerAlgorithm } from '../algorithms/SimplePlayerAlgorithm';
+import { AlgorithmManager } from '../algorithms/AlgorithmManager'; // Add this import
+import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
 
 export class Simulation {
   private p: p5;
@@ -8,6 +11,7 @@ export class Simulation {
   private settings: SimulationSettings;
   private frameCounter: number = 0;
   private peopleSpawnRate: number = 0;
+  private currentAlgorithmId: string = 'default';
   
   constructor(p: p5, settings: SimulationSettings) {
     this.p = p;
@@ -16,6 +20,20 @@ export class Simulation {
     
     // Calculate people spawn rate based on settings
     this.peopleSpawnRate = 60 / settings.peopleFlowRate; // frames between spawns
+
+    // Get or create the algorithm manager
+    const algorithmManager = this.building.getElevatorSystem().getAlgorithmManager();
+    
+    // Register the player algorithm
+    const playerAlgo = new SimplePlayerAlgorithm();
+    algorithmManager.registerAlgorithm('player', playerAlgo);
+
+    // Listen for stats updates from Building
+    this.building.onStatsUpdated((stats) => {
+      // When stats are updated (every 100 people), save to localStorage
+      this.saveCurrentStats(stats);
+      console.debug('Stats updated and saved:', stats);
+    });
   }
   
   public update(): void {
@@ -34,7 +52,7 @@ export class Simulation {
       if (edgeCaseTest) {
         // Pick either ground floor or top floor to test edge cases
         randomFloor = Math.random() < 0.5 ? 0 : this.settings.numberOfFloors - 1;
-        console.log(`Testing edge case: person at ${randomFloor === 0 ? 'ground' : 'top'} floor`);
+        console.debug(`Testing edge case: person at ${randomFloor === 0 ? 'ground' : 'top'} floor`);
       } else {
         // Normal random floor selection
         randomFloor = Math.floor(this.p.random(this.settings.numberOfFloors));
@@ -61,10 +79,41 @@ export class Simulation {
     this.building = new Building(this.p, settings);
     this.frameCounter = 0;
     this.peopleSpawnRate = 60 / settings.peopleFlowRate;
+    
+    // Reconnect the stats update callback after resetting
+    this.building.onStatsUpdated((stats) => {
+      this.saveCurrentStats(stats);
+      console.debug('Stats updated and saved:', stats);
+    });
+
+    // Re-register algorithms with the new building's elevator system
+    const algorithmManager = this.building.getElevatorSystem().getAlgorithmManager();
+    
+    // Re-register player algorithm
+    algorithmManager.registerAlgorithm('player', new SimplePlayerAlgorithm());
+    
+    // Re-apply current algorithm selection
+    if (this.currentAlgorithmId) {
+      this.building.getElevatorSystem().setAlgorithm(this.currentAlgorithmId);
+    }
   }
   
   public getStatistics(): SimulationStatistics {
-    return this.building.getStatistics();
+    // This method is just returning the building's statistics directly
+    // but we need to ensure it contains all properties from the interface
+    const buildingStats = this.building.getStatistics();
+    
+    // Create a properly formed SimulationStatistics object
+    const stats: SimulationStatistics = {
+      warmupActive: buildingStats.warmupActive,
+      warmupTimeLeft: buildingStats.warmupTimeLeft,
+      averageWaitTime: buildingStats.averageWaitTime,
+      totalPeopleServed: buildingStats.totalPeopleServed,
+      peopleWhoGaveUp: buildingStats.peopleWhoGaveUp,
+      efficiencyScore: buildingStats.efficiencyScore
+    };
+    
+    return stats;
   }
 
   public getElevatorStates(): { id: number, state: string, floor: number, passengers: number, capacity: number }[] {
@@ -90,5 +139,68 @@ export class Simulation {
     });
     
     return states;
+  }
+
+  /**
+   * Save current simulation stats to localStorage
+   */
+  private saveCurrentStats(stats: any): void {
+    // Get current algorithm details
+    const manager = this.building.getElevatorSystem().getAlgorithmManager();
+    const currentAlgo = manager.getCurrentAlgorithm();
+    
+    // Create result object with the correct structure
+    const result: SimulationResult = {
+      timestamp: Date.now(),
+      algorithmId: this.currentAlgorithmId,
+      algorithmName: currentAlgo.name,
+      settings: {
+        numberOfLanes: this.settings.numberOfLanes,
+        numberOfFloors: this.settings.numberOfFloors,
+        peopleFlowRate: this.settings.peopleFlowRate,
+        elevatorSpeed: this.settings.elevatorSpeed,
+        elevatorCapacity: this.settings.elevatorCapacity
+      },
+      stats: {
+        peopleServed: stats.totalPeopleServed,
+        averageWaitTime: stats.averageWaitTime,
+        peopleWhoGaveUp: stats.peopleWhoGaveUp,
+        efficiencyScore: stats.efficiencyScore
+      }
+    };
+    
+    // Save to localStorage
+    StatsTracker.saveSimulationResult(result);
+    console.debug('Simulation result saved:', result);
+  }
+
+  /**
+   * Change the algorithm used by the elevator system
+   */
+  public switchAlgorithm(algorithmId: string): boolean {
+    const success = this.building.getElevatorSystem().setAlgorithm(algorithmId);
+    if (success) {
+      this.currentAlgorithmId = algorithmId;
+      console.debug(`Algorithm switched to: ${algorithmId}`);
+      
+      // Reset the stat counters in Building to trigger a new stats collection cycle
+      const buildingAny = this.building as any;
+      if (buildingAny.lastStatsUpdateCount !== undefined) {
+        buildingAny.lastStatsUpdateCount = 0;
+      }
+    }
+    return success;
+  }
+
+  /**
+   * Get a list of available algorithms
+   */
+  public getAvailableAlgorithms(): Array<{id: string, name: string, description: string}> {
+    const manager = this.building.getElevatorSystem().getAlgorithmManager();
+    return manager.getAlgorithms().map(({id, algorithm}) => ({
+      id,
+      name: algorithm.name,
+      description: algorithm.description
+    }));
   }
 }

@@ -226,7 +226,7 @@ export class Elevator {
     switch (this._state) {
       case ElevatorState.REPAIR:
         if (currentTime - this.repairStartTime >= this.stuckThresholds[ElevatorState.REPAIR]) {
-          console.log(`Elevator ${this._id + 1} repair complete - returning to service`);
+          console.debug(`Elevator ${this._id + 1} repair complete - returning to service`);
           this._state = ElevatorState.IDLE;
           this.stateStartTime = currentTime;
           this.stuckWarning = false;
@@ -236,7 +236,7 @@ export class Elevator {
       case ElevatorState.IDLE:
         if (this._floorsToVisit.size > 0) {
           if (this._floorsToVisit.has(this._currentFloor)) {
-            console.log(
+            console.debug(
               `Elevator ${this._id + 1} starting to load at floor ${this._currentFloor} (already here)`
             );
             this._floorsToVisit.delete(this._currentFloor);
@@ -329,7 +329,7 @@ export class Elevator {
       this._floorsToVisit.has(calculatedFloor) &&
       Math.abs(currentPosition - calculatedFloor * floorHeight) < this._speed * 2
     ) {
-      console.log(`Elevator ${this._id + 1} stopping at intermediate floor ${calculatedFloor}`);
+      console.debug(`Elevator ${this._id + 1} stopping at intermediate floor ${calculatedFloor}`);
 
       this._y = this.p.height - calculatedFloor * floorHeight - 40;
       this._currentFloor = calculatedFloor;
@@ -432,7 +432,7 @@ export class Elevator {
     
     // Don't break down if we just changed state (less than 1 second ago)
     if (timeInCurrentState < 1000) {
-      console.log(`Elevator ${this._id + 1} skipping unnecessary repair: ${reason} (state too new: ${timeInCurrentState}ms)`);
+      console.debug(`Elevator ${this._id + 1} skipping unnecessary repair: ${reason} (state too new: ${timeInCurrentState}ms)`);
       return;
     }
     
@@ -482,7 +482,7 @@ export class Elevator {
 
   private evacuatePassengers(): void {
     if (this._people.length > 0) {
-      console.log(`Evacuating ${this._people.length} passengers from elevator ${this._id + 1}`);
+      console.debug(`Evacuating ${this._people.length} passengers from elevator ${this._id + 1}`);
       this.unloadPeopleAtFloor(this._currentFloor);
     }
   }

@@ -1,5 +1,6 @@
 import { SimulationSettings } from '../models/SimulationSettings';
 import { Simulation } from '../simulation/Simulation';
+import { ResultsPanel } from './ResultsPanel';
 
 export class UIController {
   private laneSlider: HTMLInputElement;
@@ -8,6 +9,9 @@ export class UIController {
   private elevatorSpeedSlider: HTMLInputElement;
   private elevatorCapacitySlider: HTMLInputElement;
   private resetButton: HTMLButtonElement;
+  private algorithmsDropdown: HTMLSelectElement;
+  private resultsPanel: ResultsPanel;
+  private lastResultsUpdate: number | null = null;
 
   constructor() {
     this.laneSlider = document.getElementById('lanes') as HTMLInputElement;
@@ -16,7 +20,11 @@ export class UIController {
     this.elevatorSpeedSlider = document.getElementById('elevator-speed') as HTMLInputElement;
     this.elevatorCapacitySlider = document.getElementById('elevator-capacity') as HTMLInputElement;
     this.resetButton = document.getElementById('reset-simulation') as HTMLButtonElement;
-    
+    this.algorithmsDropdown = document.getElementById('algorithm-select') as HTMLSelectElement;
+
+    // Initialize results panel
+    this.resultsPanel = new ResultsPanel();
+
     // Update value displays initially
     this.updateValueDisplays();
   }
@@ -55,6 +63,9 @@ export class UIController {
     this.resetButton.addEventListener('click', () => {
       simulation.reset(this.getSimulationSettings());
     });
+
+    // Set up the algorithms dropdown
+    this.populateAlgorithms(simulation);
   }
 
   private updateValueDisplays(): void {
@@ -68,8 +79,19 @@ export class UIController {
   public updateStats(simulation: Simulation): void {
     // Update basic statistics
     const stats = simulation.getStatistics();
+    
+    // Show warmup status if active
+    if (stats.warmupActive) {
+      document.getElementById('efficiency-status')!.textContent = `Warmup: ${stats.warmupTimeLeft.toFixed(1)}s left`;
+      document.getElementById('efficiency-status')!.classList.add('warmup');
+    } else {
+      document.getElementById('efficiency-status')!.textContent = "Measuring";
+      document.getElementById('efficiency-status')!.classList.remove('warmup');
+    }
+    
     document.getElementById('avg-wait-time')!.textContent = stats.averageWaitTime.toFixed(1);
     document.getElementById('total-people')!.textContent = stats.totalPeopleServed.toString();
+    document.getElementById('people-who-gave-up')!.textContent = stats.peopleWhoGaveUp.toString();
     document.getElementById('efficiency-score')!.textContent = stats.efficiencyScore.toFixed(0);
     
     // Update elevator status table
@@ -77,50 +99,63 @@ export class UIController {
     
     // Update legend colors
     this.updateLegendColors();
+
+    // Update results table periodically (every 5 seconds)
+    const currentTime = Date.now();
+    if (!this.lastResultsUpdate || currentTime - this.lastResultsUpdate > 5000) {
+      this.resultsPanel.updateResultsTable();
+      this.lastResultsUpdate = currentTime;
+    }
   }
   
   private updateElevatorStatus(simulation: Simulation): void {
     const elevatorStates = simulation.getElevatorStates();
-    const tableBody = document.getElementById('elevator-status-body');
+    const gridContainer = document.getElementById('elevator-status-grid');
     
-    if (!tableBody) return;
+    if (!gridContainer) return;
     
-    // Clear existing rows
-    tableBody.innerHTML = '';
+    // Remove existing elevator rows (but keep the header)
+    const existingRows = gridContainer.querySelectorAll('.elevator-grid-row');
+    existingRows.forEach(row => row.remove());
     
-    // Add a row for each elevator
+    // Add a grid row for each elevator
     elevatorStates.forEach(elevator => {
-      const row = document.createElement('tr');
+      const row = document.createElement('div');
+      row.className = 'elevator-grid-row';
       
       // Elevator ID
-      const idCell = document.createElement('td');
+      const idCell = document.createElement('div');
+      idCell.className = 'id-cell';
       idCell.textContent = `E${elevator.id}`;
-      row.appendChild(idCell);
       
       // State with color
-      const stateCell = document.createElement('td');
+      const stateCell = document.createElement('div');
+      stateCell.className = `state-cell state-${elevator.state.toLowerCase()}`;
       stateCell.textContent = elevator.state;
-      stateCell.className = `state-${elevator.state.toLowerCase()}`;
-      row.appendChild(stateCell);
       
       // Floor
-      const floorCell = document.createElement('td');
+      const floorCell = document.createElement('div');
+      floorCell.className = 'floor-cell';
       floorCell.textContent = elevator.floor.toString();
-      row.appendChild(floorCell);
       
       // Capacity
-      const capacityCell = document.createElement('td');
-      capacityCell.textContent = `${elevator.passengers}/${elevator.capacity}`;
+      const capacityCell = document.createElement('div');
+      capacityCell.className = 'capacity-cell';
+      capacityCell.innerHTML = `${elevator.passengers}/${elevator.capacity}`;
       
-      // Add a visual indicator of capacity
+      // Calculate percentage full
       const percentFull = elevator.capacity > 0 ? (elevator.passengers / elevator.capacity) * 100 : 0;
+      
+      // Create capacity bar element
       const capacityBar = document.createElement('div');
       capacityBar.className = 'capacity-bar';
+      
+      // Create fill bar element
       const fillBar = document.createElement('div');
       fillBar.className = 'capacity-fill';
       fillBar.style.width = `${percentFull}%`;
       
-      // Color the fill bar based on how full the elevator is
+      // Color based on how full
       if (percentFull < 50) {
         fillBar.style.backgroundColor = 'green';
       } else if (percentFull < 80) {
@@ -129,13 +164,19 @@ export class UIController {
         fillBar.style.backgroundColor = 'red';
       }
       
+      // Append fill bar to capacity bar
       capacityBar.appendChild(fillBar);
-      capacityCell.appendChild(document.createTextNode(' '));
+      
+      // Append capacity bar to capacity cell
       capacityCell.appendChild(capacityBar);
       
+      // Add cells to row
+      row.appendChild(idCell);
+      row.appendChild(stateCell);
+      row.appendChild(floorCell);
       row.appendChild(capacityCell);
       
-      tableBody.appendChild(row);
+      gridContainer.appendChild(row);
     });
   }
   
@@ -155,5 +196,44 @@ export class UIController {
     if (legendItems['moving-down']) legendItems['moving-down'].style.backgroundColor = '#FF0000';
     if (legendItems.loading) legendItems.loading.style.backgroundColor = '#FFFF00';
     if (legendItems.repair) legendItems.repair.style.backgroundColor = '#800080';
+  }
+
+  /**
+   * Populate the algorithms dropdown with available options
+   */
+  public populateAlgorithms(simulation: Simulation): void {
+    const algorithms = simulation.getAvailableAlgorithms();
+    
+    // Clear existing options
+    while (this.algorithmsDropdown.options.length > 0) {
+      this.algorithmsDropdown.remove(0);
+    }
+    
+    // Add new options
+    algorithms.forEach(algo => {
+      const option = document.createElement('option');
+      option.value = algo.id;
+      option.text = algo.name;
+      option.title = algo.description;
+      this.algorithmsDropdown.add(option);
+    });
+    
+    // Set up change handler
+    this.algorithmsDropdown.addEventListener('change', () => {
+      const selectedId = this.algorithmsDropdown.value;
+      if (selectedId) {
+        simulation.switchAlgorithm(selectedId);
+        
+        // Update the algorithm description
+        const selectedAlgo = algorithms.find(a => a.id === selectedId);
+        if (selectedAlgo) {
+          document.getElementById('algorithm-description')!.textContent = selectedAlgo.description;
+        }
+      }
+    });
+    
+    // Trigger the change event to display the initial description
+    const event = new Event('change');
+    this.algorithmsDropdown.dispatchEvent(event);
   }
 }

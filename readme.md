@@ -3,6 +3,9 @@
 - the algo shouldn't suggest an elevator that seems stuck, so each elevator should track its own errors
 - when adding a floor to an elevator, we should probably re-optimize the route for the elevator
 
+# BUG
+- looks like elevator is stopping on floors to pick up ppl, even though the elevator is full
+
 
 # description
 Create a "game" where the goal of the game is to reach as much efficiency as possible. You can adjust how many elevator "lanes" the building have, and also how many floors.

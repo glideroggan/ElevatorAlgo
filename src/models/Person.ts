@@ -9,25 +9,18 @@ export class Person {
   private _color: p5.Color;
   private _assignedElevator: number = -1;
 
-  // New properties for patience thresholds
-  private _buttonRepressThreshold: number;  // Time before pressing button again
-  private _giveUpThreshold: number;         // Time before giving up and "taking the stairs"
-  private _lastButtonPressTime: number;
+  // Keep only the give-up mechanism, remove button repress
+  private _giveUpThreshold: number;  // Time before giving up and "taking the stairs"
   private _hasGivenUp: boolean = false;
-  private _isButtonRepressNeeded: boolean = false;
 
   constructor(p: p5, startFloor: number, destinationFloor: number) {
     this.p = p;
     this._startFloor = startFloor;
     this._destinationFloor = destinationFloor;
     this._waitStartTime = p.millis();
-    this._lastButtonPressTime = p.millis();
 
-    // Set patience thresholds - random for each person
-    // Most people will repress the button between 15-40 seconds
-    this._buttonRepressThreshold = p.random(15000, 40000);  // 15-40 seconds
-    // Most people will give up after 60-180 seconds (1-3 minutes)
-    this._giveUpThreshold = p.random(60000, 180000);      // 1-3 minutes
+    // Most people will give up after 30-90 seconds
+    this._giveUpThreshold = p.random(30000, 90000);  // 30-90 seconds
 
     // Assign a random color to the person for visualization
     this._color = p.color(
@@ -37,7 +30,7 @@ export class Person {
     );
   }
 
-  // Convert properties to getters
+  // Keep these getters
   get waitTime(): number {
     return this._waitingTime;
   }
@@ -58,10 +51,6 @@ export class Person {
     return this._hasGivenUp;
   }
 
-  get isButtonRepressNeeded(): boolean {
-    return this._isButtonRepressNeeded;
-  }
-
   // For backwards compatibility
   get WaitTime(): number {
     return this._waitingTime;
@@ -78,22 +67,11 @@ export class Person {
   public updateWaitingTime(): void {
     this._waitingTime = (this.p.millis() - this._waitStartTime) / 1000; // in seconds
 
-    // Check if we should press the button again
-    const timeSinceLastButtonPress = this.p.millis() - this._lastButtonPressTime;
-    if (!this._isButtonRepressNeeded && timeSinceLastButtonPress > this._buttonRepressThreshold) {
-      this._isButtonRepressNeeded = true;
-    }
-
-    // Check if we should give up
+    // Remove button repress check, keep only the give up check
     if (!this._hasGivenUp && this.p.millis() - this._waitStartTime > this._giveUpThreshold) {
       this._hasGivenUp = true;
-      console.log(`Person at floor ${this._startFloor} gave up after waiting ${this._waitingTime.toFixed(1)}s`);
+      console.debug(`Person at floor ${this._startFloor} gave up after waiting ${this._waitingTime.toFixed(1)}s`);
     }
-  }
-
-  public resetButtonPressFlag(): void {
-    this._isButtonRepressNeeded = false;
-    this._lastButtonPressTime = this.p.millis();
   }
 
   public setAssignedElevator(elevatorIndex: number): void {
@@ -105,18 +83,14 @@ export class Person {
   }
 
   public draw(x: number, y: number): void {
-    // Draw person with different appearance based on state
+    // Update visual appearance - remove the impatient person styling
     if (this._hasGivenUp) {
       // Draw as a person who has given up - faded color
       this.p.fill(this.p.color(100, 100, 100));
       this.p.textSize(8);
       this.p.text("↑stairs", x, y - 15);
-    } else if (this._isButtonRepressNeeded) {
-      // Draw as an impatient person - pulsing effect
-      const pulse = Math.sin(this.p.millis() / 200) * 0.2 + 0.8;
-      this.p.fill(this.p.lerpColor(this._color, this.p.color(255, 0, 0), pulse));
     } else {
-      // Normal waiting person
+      // Normal waiting person (no more impatient state)
       this.p.fill(this._color);
     }
 
