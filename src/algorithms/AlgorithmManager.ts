@@ -11,7 +11,7 @@ export class AlgorithmManager {
   constructor() {
     // Register the default algorithm
     const defaultAlgo = new DefaultElevatorAlgorithm();
-    this.algorithms.set('default', defaultAlgo);
+    this.algorithms.set('simple1', defaultAlgo);
     this.currentAlgorithm = defaultAlgo;
   }
   

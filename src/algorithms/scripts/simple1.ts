@@ -17,13 +17,14 @@ export class Simple1 extends BaseElevatorAlgorithm {
         // Create a copy and sort floors in ascending order
         const visits = [...elevator.floorsToVisit].sort((a, b) => a - b);
         
-        // Check if the first floor in our sorted list is the current floor
-        if (visits[0] === elevator.currentFloor) {
-            // If we're already at this floor, pick the next one if available
-            return visits.length > 1 ? visits[1] : elevator.currentFloor;
-        }
-        
-        // Otherwise return the first floor in our sorted list
         return visits[0];
+        // // Check if the first floor in our sorted list is the current floor
+        // if (visits[0] === elevator.currentFloor) {
+        //     // If we're already at this floor, pick the next one if available
+        //     return visits.length > 1 ? visits[1] : elevator.currentFloor;
+        // }
+        
+        // // Otherwise return the first floor in our sorted list
+        // return visits[0];
     }
 }
