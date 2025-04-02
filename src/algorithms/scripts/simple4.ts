@@ -32,45 +32,63 @@ export class Simple4 extends BaseElevatorAlgorithm {
         const floorsToVisit = elevator.floorsToVisit.filter(floor => 
             floor !== elevator.currentFloor
         );
-
-        // prioritze people that have waited the longest
-        // console.debug(building.floorStats)
-        const waitingPeopleOnFloors = building.floorStats.map(floor => {
-            return {
-                floor: floor.floor,
-                waitingTime: floor.maxWaitTime,
-                peopleWaiting: floor.waitingCount
-            }})
-            // console.debug(waitingPeopleOnFloors)
-        .sort((a, b) => {
-            if (a.waitingTime === b.waitingTime) {
-                return 0;
-            }
-            return b.waitingTime - a.waitingTime;
-        });
-        console.debug(waitingPeopleOnFloors)
-        // if not full, go for the first floor with people waiting over 3 seconds
-        const waitingFloors = waitingPeopleOnFloors.filter(floor => 
-            floor.waitingTime > 3 
-        ).map(floor => floor.floor);
-        console.debug(waitingFloors)
-        if (elevator.passengers < elevator.capacity && waitingFloors.length > 0) {
-            return waitingFloors[0]; // Return the first waiting floor
-        }
         
-        // If no floors left to visit after filtering, return current floor
         if (floorsToVisit.length === 0) {
-            return elevator.currentFloor;
+            return elevator.currentFloor; // No more floors to visit after filtering
         }
 
-        // priritize drop off passengers first
+        // Extract wait time information for floors we need to visit, 
+        // prioritizing elevator-specific data when available
+        const floorsWithWaitTimes = floorsToVisit.map(floor => {
+            // Find stats for this floor
+            const floorStat = building.floorStats.find(stat => stat.floor === floor);
+            if (!floorStat || floorStat.waitingCount === 0) {
+                return { floor, waitTime: 0, peopleWaiting: 0 };
+            }
+
+            let waitTime = floorStat.totalMaxWaitTime; // Default to total max wait time
+            let peopleWaiting = floorStat.waitingCount;
+            
+            // Check if we have elevator-specific stats for this floor and elevator
+            if (floorStat.perElevatorStats) {
+                const elevatorStat = floorStat.perElevatorStats.find(es => es.elevatorId === elevator.id);
+                if (elevatorStat && elevatorStat.waitingCount > 0) {
+                    // Use elevator-specific wait time and count
+                    waitTime = elevatorStat.maxWaitTime;
+                    peopleWaiting = elevatorStat.waitingCount;
+                }
+            }
+            
+            return { floor, waitTime, peopleWaiting };
+        });
+
+        // Sort by wait time (longest first)
+        const sortedByWaitTime = [...floorsWithWaitTimes]
+            .sort((a, b) => b.waitTime - a.waitTime);
+            
+        console.debug('Floors with wait times:', 
+            sortedByWaitTime.map(f => `Floor ${f.floor}: ${f.waitTime.toFixed(1)}s (${f.peopleWaiting} people)`));
+
+        // Find floors with people waiting too long (over 3 seconds)
+        const longWaitFloors = sortedByWaitTime
+            .filter(data => data.waitTime > 3 && data.peopleWaiting > 0);
+
+        // If there are people waiting over threshold and elevator not full, prioritize them
+        if (elevator.passengers < elevator.capacity && longWaitFloors.length > 0) {
+            console.debug(`Prioritizing floor ${longWaitFloors[0].floor} with max wait ${longWaitFloors[0].waitTime.toFixed(1)}s`);
+            return longWaitFloors[0].floor;
+        }
+
+        // Otherwise, prioritize dropoff for current passengers
         const dropOffFloors = elevator.passengerDestinations.filter(floor => 
             floor !== elevator.currentFloor
         );
+        
         if (dropOffFloors.length > 0) {
             return dropOffFloors[0]; // Return the first drop-off floor
         }
-        // otwerwise, sort the remaining floors in ascending order and return the first one
-        return floorsToVisit[0]
+        
+        // If we get here, just visit the first floor in our list
+        return floorsToVisit[0];
     }
 }

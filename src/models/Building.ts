@@ -305,14 +305,23 @@ export class Building {
       let maxWait = 0;
       let totalWait = 0;
       
-      // Convert people to PersonData for the interface
-      const waitingPeople = people.map(person => ({
-        startFloor: person.StartFloor,
-        destinationFloor: person.DestinationFloor,
-        waitTime: person.waitTime
-      }));
+      // Group people by assigned elevator
+      const peopleByElevator = new Map<number, Person[]>();
       
+      // Initialize with all elevators that exist
+      for (let e = 0; e < this.elevators.length; e++) {
+        peopleByElevator.set(e, []);
+      }
+      
+      // Group people by their assigned elevator
       people.forEach(person => {
+        const elevatorId = person.getAssignedElevator();
+        if (!peopleByElevator.has(elevatorId)) {
+          peopleByElevator.set(elevatorId, []);
+        }
+        peopleByElevator.get(elevatorId)!.push(person);
+        
+        // Calculate overall stats
         if (person.waitTime > maxWait) {
           maxWait = person.waitTime;
         }
@@ -321,12 +330,42 @@ export class Building {
       
       const avgWait = people.length > 0 ? totalWait / people.length : 0;
       
+      // Convert people to PersonData for the interface
+      const waitingPeople = people.map(person => ({
+        startFloor: person.StartFloor,
+        destinationFloor: person.DestinationFloor,
+        waitTime: person.waitTime
+      }));
+      
+      // Generate per-elevator statistics
+      const perElevatorStats = Array.from(peopleByElevator.entries()).map(([elevatorId, assignedPeople]) => {
+        let elevatorMaxWait = 0;
+        let elevatorTotalWait = 0;
+        
+        assignedPeople.forEach(person => {
+          if (person.waitTime > elevatorMaxWait) {
+            elevatorMaxWait = person.waitTime;
+          }
+          elevatorTotalWait += person.waitTime;
+        });
+        
+        const elevatorAvgWait = assignedPeople.length > 0 ? elevatorTotalWait / assignedPeople.length : 0;
+        
+        return {
+          elevatorId,
+          waitingCount: assignedPeople.length,
+          maxWaitTime: elevatorMaxWait,
+          avgWaitTime: elevatorAvgWait
+        };
+      });
+      
       stats.push({
         floor: i,
         waitingCount: people.length,
-        maxWaitTime: maxWait,
-        avgWaitTime: avgWait,
-        waitingPeople: waitingPeople
+        totalMaxWaitTime: maxWait,      // Renamed from maxWaitTime
+        totalAvgWaitTime: avgWait,      // Renamed from avgWaitTime
+        waitingPeople: waitingPeople,
+        perElevatorStats: perElevatorStats
       });
     }
 
@@ -334,7 +373,14 @@ export class Building {
     if (stats.some(s => s.waitingCount > 0)) {
       console.debug('FloorStats generated with waiting people:', 
         stats.filter(s => s.waitingCount > 0)
-          .map(s => `Floor ${s.floor}: ${s.waitingCount} people, max wait: ${s.maxWaitTime.toFixed(1)}s`)
+          .map(s => {
+            const elevatorBreakdown = s.perElevatorStats
+              ?.filter(es => es.waitingCount > 0)
+              .map(es => `E${es.elevatorId + 1}: ${es.waitingCount} ppl, max ${es.maxWaitTime.toFixed(1)}s`)
+              .join(', ');
+              
+            return `Floor ${s.floor}: ${s.waitingCount} people, total max wait: ${s.totalMaxWaitTime.toFixed(1)}s (${elevatorBreakdown || 'no elevator assigned'})`;
+          })
       );
     }
     

@@ -79,13 +79,13 @@ export class ElevatorSystem {
     
     try {
       // Log some debug info about what's being decided
-      if (floorStats && floorStats.some(s => s.waitingCount > 0)) {
-        console.debug(`Deciding next floor for elevator ${elevator.id + 1} with floorStats:`, 
-          floorStats.filter(s => s.waitingCount > 0).map(s => 
-            `Floor ${s.floor}: ${s.waitingCount} people, max wait: ${s.maxWaitTime.toFixed(1)}s`
-          )
-        );
-      }
+      // if (floorStats && floorStats.some(s => s.waitingCount > 0)) {
+      //   console.debug(`Deciding next floor for elevator ${elevator.id + 1} with floorStats:`, 
+      //     floorStats.filter(s => s.waitingCount > 0).map(s => 
+      //       `Floor ${s.floor}: ${s.waitingCount} people, max wait: ${s.maxWaitTime.toFixed(1)}s`
+      //     )
+      //   );
+      // }
       
       // Delegate to the current algorithm
       const nextFloor = this.algorithmManager.getCurrentAlgorithm().decideNextFloor(

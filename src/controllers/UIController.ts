@@ -90,6 +90,12 @@ export class UIController {
     }
     
     document.getElementById('avg-wait-time')!.textContent = stats.averageWaitTime.toFixed(1);
+    
+    // Add the average service time display
+    if (document.getElementById('avg-service-time')) {
+      document.getElementById('avg-service-time')!.textContent = stats.averageServiceTime.toFixed(1);
+    }
+    
     document.getElementById('total-people')!.textContent = stats.totalPeopleServed.toString();
     document.getElementById('people-who-gave-up')!.textContent = stats.peopleWhoGaveUp.toString();
     document.getElementById('efficiency-score')!.textContent = stats.efficiencyScore.toFixed(0);
@@ -228,6 +234,9 @@ export class UIController {
         const selectedAlgo = algorithms.find(a => a.id === selectedId);
         if (selectedAlgo) {
           document.getElementById('algorithm-description')!.textContent = selectedAlgo.description;
+          
+          // Highlight this algorithm in the results table
+          this.resultsPanel.setCurrentAlgorithm(selectedId);
         }
       }
     });

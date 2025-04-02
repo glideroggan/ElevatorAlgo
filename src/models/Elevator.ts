@@ -691,13 +691,13 @@ export class Elevator {
       if (buildingRef && typeof buildingRef.getFloorStats === 'function') {
         floorStats = buildingRef.getFloorStats();
         
-        // If we have floor stats with waiting people, log for debugging
-        const waitingFloors = floorStats.filter((stat:FloorStats) => stat.waitingCount > 0);
-        if (waitingFloors.length > 0) {
-          console.debug(`Elevator ${this._id + 1} checking floors with waiting people:`, 
-            waitingFloors.map((f:FloorStats) => `Floor ${f.floor}: ${f.waitingCount} people, max wait: ${f.maxWaitTime.toFixed(1)}s`)
-          );
-        }
+        // // If we have floor stats with waiting people, log for debugging
+        // const waitingFloors = floorStats.filter((stat:FloorStats) => stat.waitingCount > 0);
+        // if (waitingFloors.length > 0) {
+        //   console.debug(`Elevator ${this._id + 1} checking floors with waiting people:`, 
+        //     waitingFloors.map((f:FloorStats) => `Floor ${f.floor}: ${f.waitingCount} people, max wait: ${f.maxWaitTime.toFixed(1)}s`)
+        //   );
+        // }
       }
       
       // Pass floor stats to the decision function

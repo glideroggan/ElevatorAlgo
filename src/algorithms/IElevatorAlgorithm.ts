@@ -68,13 +68,40 @@ export interface PersonData {
   journeyTime?: number; // Optional for backward compatibility
 }
 
+export interface ElevatorWaitingStats {
+  /**
+   * Elevator ID (0-based index)
+   */
+  elevatorId: number;
+  
+  /**
+   * Number of people waiting for this specific elevator
+   */
+  waitingCount: number;
+  
+  /**
+   * Maximum wait time of people assigned to this elevator
+   */
+  maxWaitTime: number;
+  
+  /**
+   * Average wait time of people assigned to this elevator
+   */
+  avgWaitTime: number;
+}
+
 export interface FloorStats {
   floor: number;
   waitingCount: number;
-  maxWaitTime: number;
-  avgWaitTime: number;
-  avgJourneyTime?: number; // Average journey time for people who visited this floor
-  waitingPeople?: PersonData[]; // People waiting on this floor
+  
+  // Renamed to clarify these represent overall floor stats
+  totalMaxWaitTime: number;  // Maximum wait time across all people on this floor
+  totalAvgWaitTime: number;  // Average wait time across all people on this floor
+  
+  waitingPeople?: PersonData[];
+  
+  // Per-elevator statistics for people assigned to each elevator
+  perElevatorStats?: ElevatorWaitingStats[];
 }
 
 export interface BuildingData {

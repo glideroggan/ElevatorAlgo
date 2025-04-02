@@ -309,15 +309,14 @@ h2 {
   font-weight: bold;
 }
 
-/* Add a visual indicator of algorithm performance */
-.results-table tr:nth-child(1) .score::after {
-  content: " 🥇";
+/* Highlight style for current algorithm in results table */
+.results-table .current-algorithm {
+  background-color: #f0f8ff; /* Light blue background */
+  font-weight: bold;
 }
-.results-table tr:nth-child(2) .score::after {
-  content: " 🥈";
-}
-.results-table tr:nth-child(3) .score::after {
-  content: " 🥉";
+
+.results-table .current-algorithm td {
+  border-color: #4682b4; /* Darker border */
 }
 
 .small-button {

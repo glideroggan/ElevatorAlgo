@@ -2,7 +2,7 @@
 - another factor we should consider is how long a person had to spend time in the elevator
 
 # BUG
-- looks like elevator is stopping on floors to pick up ppl, even though the elevator is full
+- When an elevator gets "stuck", we should print out more debug information
 
 
 # description

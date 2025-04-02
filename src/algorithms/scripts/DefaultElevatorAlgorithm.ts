@@ -102,9 +102,18 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
     // Find floors with people waiting above the threshold
     for (const floor of floors) {
       const floorStat = floorStats.find(stat => stat.floor === floor);
-      if (floorStat && floorStat.waitingCount > 0 && floorStat.maxWaitTime > maxWaitTime) {
+      if (floorStat && floorStat.waitingCount > 0 && floorStat.totalMaxWaitTime > maxWaitTime) {
         urgentFloor = floor;
-        maxWaitTime = floorStat.maxWaitTime;
+        maxWaitTime = floorStat.totalMaxWaitTime;
+        
+        // Log detailed per-elevator waiting data when we find an urgent floor
+        if (floorStat.perElevatorStats) {
+          const waitingDetails = floorStat.perElevatorStats
+            .filter(es => es.waitingCount > 0)
+            .map(es => `E${es.elevatorId + 1}: ${es.waitingCount} ppl waiting ${es.maxWaitTime.toFixed(1)}s`);
+            
+          console.debug(`Urgent floor ${floor} breakdown: ${waitingDetails.join(', ')}`);
+        }
       }
     }
     
@@ -199,22 +208,39 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
     // Penalize elevators that already have many stops to make
     const busyPenalty = -elevator.floorsToVisit.length * 50;
     
-    // Factor in waiting time - this is now more important with non-linear scaling
+    // Factor in waiting time with enhanced elevator-specific data if available
     let waitTimeScore = 0;
     const floorStat = floorStats.find(stat => stat.floor === pickupFloor);
     
     if (floorStat && floorStat.waitingCount > 0) {
+      // Default to the overall floor max wait time
+      let elevatorSpecificMaxWait = floorStat.totalMaxWaitTime; 
+      
+      // Check if we have specific data for this elevator
+      if (floorStat.perElevatorStats) {
+        // Find data for people already assigned to this elevator
+        const elevatorStat = floorStat.perElevatorStats.find(es => es.elevatorId === elevator.id);
+        if (elevatorStat && elevatorStat.waitingCount > 0) {
+          // Use elevator-specific max wait time if available
+          elevatorSpecificMaxWait = elevatorStat.maxWaitTime;
+          
+          // Add a bonus for serving people already assigned to this elevator
+          waitTimeScore += 200;
+          console.debug(`Elevator ${elevator.id + 1} gets bonus for serving ${elevatorStat.waitingCount} assigned people on floor ${pickupFloor}`);
+        }
+      }
+      
       // Basic waiting time score
-      waitTimeScore = Math.min(floorStat.maxWaitTime * 50, 500);
+      waitTimeScore += Math.min(elevatorSpecificMaxWait * 50, 500);
       
       // Enhanced wait time scoring - apply exponential bonus for long waits
-      if (floorStat.maxWaitTime > this.LONG_WAIT_THRESHOLD) {
+      if (elevatorSpecificMaxWait > this.LONG_WAIT_THRESHOLD) {
         // Exponential growth for wait times above threshold
-        const excessWaitTime = floorStat.maxWaitTime - this.LONG_WAIT_THRESHOLD;
+        const excessWaitTime = elevatorSpecificMaxWait - this.LONG_WAIT_THRESHOLD;
         const urgencyBonus = Math.min(1000, Math.pow(excessWaitTime, 1.5) * 20);
         waitTimeScore += urgencyBonus;
         
-        console.debug(`Floor ${pickupFloor} has ${floorStat.waitingCount} people waiting ${floorStat.maxWaitTime.toFixed(1)}s (urgency bonus: ${urgencyBonus})`);
+        console.debug(`Floor ${pickupFloor} has people waiting ${elevatorSpecificMaxWait.toFixed(1)}s for elevator ${elevator.id + 1} (urgency bonus: ${urgencyBonus})`);
       }
       
       // Also consider number of waiting people
