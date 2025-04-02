@@ -255,11 +255,20 @@ export class Elevator {
               }
             }
 
-            this._state =
-              this._targetFloor > this._currentFloor
-                ? ElevatorState.MOVING_UP
-                : ElevatorState.MOVING_DOWN;
-            this.stateStartTime = currentTime;
+            // Only enter a moving state if the target floor is different from current floor
+            if (this._targetFloor !== this._currentFloor) {
+              this._state =
+                this._targetFloor > this._currentFloor
+                  ? ElevatorState.MOVING_UP
+                  : ElevatorState.MOVING_DOWN;
+              this.stateStartTime = currentTime;
+            } else {
+              // We're already at the target floor, so enter LOADING state directly
+              this._state = ElevatorState.LOADING;
+              this.stateStartTime = currentTime;
+              this._floorsToVisit.delete(this._currentFloor);
+              this.unloadPeopleAtFloor(this._currentFloor);
+            }
           }
         }
         break;

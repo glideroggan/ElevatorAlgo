@@ -1,10 +1,6 @@
-import { 
-  PersonData, 
-  BuildingData,
-  ElevatorData
-} from './IElevatorAlgorithm';
-import { BaseElevatorAlgorithm } from './BaseElevatorAlgorithm';
-import { ElevatorState } from '../models/Elevator';
+import { ElevatorState } from '../../models/Elevator';
+import { BaseElevatorAlgorithm } from '../BaseElevatorAlgorithm';
+import { BuildingData, ElevatorData, PersonData } from '../IElevatorAlgorithm';
 
 /**
  * A simple example of a player-created algorithm using the base class

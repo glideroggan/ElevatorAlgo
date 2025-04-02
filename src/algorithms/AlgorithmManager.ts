@@ -1,5 +1,5 @@
 import { IElevatorAlgorithm } from './IElevatorAlgorithm';
-import { DefaultElevatorAlgorithm } from './DefaultElevatorAlgorithm';
+import { DefaultElevatorAlgorithm } from './scripts/DefaultElevatorAlgorithm';
 
 /**
  * Manages the available elevator algorithms and allows switching between them
@@ -19,6 +19,7 @@ export class AlgorithmManager {
    * Register a new algorithm
    */
   public registerAlgorithm(id: string, algorithm: IElevatorAlgorithm): void {
+    console.debug(`Registering algorithm: ${id}`);
     this.algorithms.set(id, algorithm);
   }
   

@@ -3,9 +3,9 @@ import {
   BuildingData,
   ElevatorData,
   FloorStats
-} from './IElevatorAlgorithm';
-import { BaseElevatorAlgorithm } from './BaseElevatorAlgorithm';
-import { ElevatorState } from '../models/Elevator';
+} from '../IElevatorAlgorithm';
+import { BaseElevatorAlgorithm } from '../BaseElevatorAlgorithm';
+import { ElevatorState } from '../../models/Elevator';
 
 /**
  * Default elevator algorithm with enhanced wait time prioritization
@@ -249,20 +249,4 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
     
     return -100; // Both pickup and dropoff would require detours
   }
-  
-//   private isFloorOnWay(elevator: ElevatorData, floor: number): boolean {
-//     if (elevator.state === ElevatorState.IDLE) return true;
-    
-//     const currentFloor = elevator.currentFloor;
-//     const direction = elevator.direction;
-//     const currentDestination = elevator.targetFloor;
-    
-//     if (!currentDestination) return false;
-    
-//     if (direction > 0) { // Going up
-//       return floor >= currentFloor && floor <= currentDestination;
-//     } else { // Going down
-//       return floor <= currentFloor && floor >= currentDestination;
-//     }
-//   }
 }

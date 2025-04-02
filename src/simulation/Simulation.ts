@@ -1,9 +1,9 @@
 import p5 from 'p5';
 import { Building } from '../models/Building';
 import { SimulationSettings, SimulationStatistics } from '../models/SimulationSettings';
-import { SimplePlayerAlgorithm } from '../algorithms/SimplePlayerAlgorithm';
-import { AlgorithmManager } from '../algorithms/AlgorithmManager'; // Add this import
 import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
+import { SimplePlayerAlgorithm } from '../algorithms/scripts/SimplePlayerAlgorithm';
+import { Simple1 } from '../algorithms/scripts/simple1';
 
 export class Simulation {
   private p: p5;
@@ -27,6 +27,7 @@ export class Simulation {
     // Register the player algorithm
     const playerAlgo = new SimplePlayerAlgorithm();
     algorithmManager.registerAlgorithm('player', playerAlgo);
+    algorithmManager.registerAlgorithm('simple1', new Simple1());
 
     // Listen for stats updates from Building
     this.building.onStatsUpdated((stats) => {
@@ -89,8 +90,11 @@ export class Simulation {
     // Re-register algorithms with the new building's elevator system
     const algorithmManager = this.building.getElevatorSystem().getAlgorithmManager();
     
+    // TODO: we should call into something else here, instead of re-registering
     // Re-register player algorithm
+    console.log('Re-registering player algorithm');
     algorithmManager.registerAlgorithm('player', new SimplePlayerAlgorithm());
+    algorithmManager.registerAlgorithm('simple1', new Simple1());
     
     // Re-apply current algorithm selection
     if (this.currentAlgorithmId) {
