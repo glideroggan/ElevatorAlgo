@@ -274,8 +274,6 @@ export class Elevator {
         break;
 
       case ElevatorState.MOVING_UP:
-        this.checkForIntermediateStops();
-
         const targetYUp = this.p.height - this._targetFloor * this._floorHeight - 40;
         if (this._y > targetYUp) {
           this._y -= this._speed;
@@ -291,8 +289,6 @@ export class Elevator {
         break;
 
       case ElevatorState.MOVING_DOWN:
-        this.checkForIntermediateStops();
-
         const targetYDown = this.p.height - this._targetFloor * this._floorHeight - 40;
         if (this._y < targetYDown) {
           this._y += this._speed;
@@ -320,34 +316,6 @@ export class Elevator {
     );
   }
 
-  private checkForIntermediateStops(): void {
-    const floorHeight = this._floorHeight;
-    const pixelsMovedSinceLastFloor = Math.abs(
-      this._y - (this.p.height - this._currentFloor * floorHeight - 40)
-    );
-
-    if (pixelsMovedSinceLastFloor < floorHeight / 4) {
-      return;
-    }
-
-    const currentPosition = this.p.height - this._y - 40;
-    const calculatedFloor = Math.round(currentPosition / floorHeight);
-
-    if (
-      calculatedFloor !== this._currentFloor &&
-      this._floorsToVisit.has(calculatedFloor) &&
-      Math.abs(currentPosition - calculatedFloor * floorHeight) < this._speed * 2
-    ) {
-      console.debug(`Elevator ${this._id + 1} stopping at intermediate floor ${calculatedFloor}`);
-
-      this._y = this.p.height - calculatedFloor * floorHeight - 40;
-      this._currentFloor = calculatedFloor;
-      this._floorsToVisit.delete(calculatedFloor);
-      this._state = ElevatorState.LOADING;
-      this.stateStartTime = this.p.millis();
-      this.unloadPeopleAtFloor(this._currentFloor);
-    }
-  }
 
   private updateHistory(): void {
     this.positionHistory.shift();

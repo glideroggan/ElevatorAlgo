@@ -54,9 +54,17 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
     const currentFloor = elevator.currentFloor;
     const passengerDestinations = new Set(elevator.passengerDestinations);
     
+    // Remove the current floor from floors to visit - we're already here!
+    floorsToVisit.delete(currentFloor);
+    
+    // If after removing current floor we have nothing to visit, just stay here
+    if (floorsToVisit.size === 0) {
+      return currentFloor;
+    }
+    
     // Check for floors with long waiting passengers as a high priority
     const urgentFloor = this.checkForUrgentFloors(Array.from(floorsToVisit), building.floorStats);
-    if (urgentFloor !== null) {
+    if (urgentFloor !== null && urgentFloor !== currentFloor) {
       console.debug(`Prioritizing floor ${urgentFloor} due to long wait time`);
       return urgentFloor;
     }
@@ -73,7 +81,9 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
       
       // If we filtered out all floors but we have passengers, something's wrong - use their destinations
       if (filteredFloorsToVisit.size === 0 && passengerDestinations.size > 0) {
-        filteredFloorsToVisit = passengerDestinations;
+        filteredFloorsToVisit = new Set(
+          Array.from(passengerDestinations).filter(floor => floor !== currentFloor)
+        );
       }
     }
     

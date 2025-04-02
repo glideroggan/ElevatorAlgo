@@ -14,17 +14,30 @@ export class Simple1 extends BaseElevatorAlgorithm {
             return elevator.currentFloor; // No floors to visit, stay where you are
         }
 
+        // Remove current floor from consideration
+        const floorsToVisit = elevator.floorsToVisit.filter(floor => 
+            floor !== elevator.currentFloor
+        );
+        
+        // If no floors left to visit after filtering, return current floor
+        if (floorsToVisit.length === 0) {
+            return elevator.currentFloor;
+        }
+
+        // priritize drop off passengers first
+        const dropOffFloors = elevator.passengerDestinations.filter(floor => 
+            floor !== elevator.currentFloor
+        );
+        if (dropOffFloors.length > 0) {
+            return dropOffFloors[0]; // Return the first drop-off floor
+        }
+        // otwerwise, sort the remaining floors in ascending order and return the first one
+        return floorsToVisit[0]
+        
         // Create a copy and sort floors in ascending order
-        const visits = [...elevator.floorsToVisit].sort((a, b) => a - b);
+        // const visits = [...floorsToVisit].sort((a, b) => a - b);
         
-        return visits[0];
-        // // Check if the first floor in our sorted list is the current floor
-        // if (visits[0] === elevator.currentFloor) {
-        //     // If we're already at this floor, pick the next one if available
-        //     return visits.length > 1 ? visits[1] : elevator.currentFloor;
-        // }
-        
-        // // Otherwise return the first floor in our sorted list
+        // // Return the first floor in our sorted list
         // return visits[0];
     }
 }
