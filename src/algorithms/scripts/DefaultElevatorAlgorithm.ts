@@ -45,6 +45,7 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
   }
   
   decideNextFloor(elevator: ElevatorData, building: BuildingData): number {
+    // TODO: looks like idle elevators are not being considered
     const floorsToVisit = new Set(elevator.floorsToVisit);
     
     if (floorsToVisit.size === 0) {

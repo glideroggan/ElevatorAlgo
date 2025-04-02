@@ -1,7 +1,6 @@
 import p5 from 'p5';
 import { Person } from './Person';
 import { ElevatorSystem } from './ElevatorSystem';
-import { FloorStats } from '../algorithms/IElevatorAlgorithm';
 
 export enum ElevatorState {
   IDLE,
