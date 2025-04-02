@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elevator Algorithm Simulation</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="simulation-section">
+      <div id="canvas-container"></div>
+      
+      <div class="controls-panel">
+        <div class="controls">
+          <h2>Simulation Controls</h2>
+          
+          <div class="control-group">
+            <label for="lanes">Elevator Lanes:</label>
+            <input type="range" id="lanes" min="1" max="10" value="4">
+            <span id="lanes-value">4</span>
+          </div>
+          
+          <div class="control-group">
+            <label for="floors">Number of Floors:</label>
+            <input type="range" id="floors" min="3" max="20" value="6">
+            <span id="floors-value">6</span>
+          </div>
+          
+          <div class="control-group">
+            <label for="people-flow">People Flow Rate:</label>
+            <input type="range" id="people-flow" min="1" max="20" value="1">
+            <span id="people-flow-value">1</span>
+          </div>
+          
+          <div class="control-group">
+            <label for="elevator-speed">Elevator Speed:</label>
+            <input type="range" id="elevator-speed" min="1" max="10" value="3">
+            <span id="elevator-speed-value">3</span>
+          </div>
+          
+          <div class="control-group">
+            <label for="elevator-capacity">Elevator Capacity:</label>
+            <input type="range" id="elevator-capacity" min="1" max="15" value="8">
+            <span id="elevator-capacity-value">8</span>
+          </div>
+          
+          <button id="reset-simulation">Reset Simulation</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stats-section">
+      <div class="stats-panel">
+        <div class="stats">
+          <h2>Statistics</h2>
+          <div id="stats-container">
+            <div>Average Wait Time: <span id="avg-wait-time">0</span>s</div>
+            <div>Total People Served: <span id="total-people">0</span></div>
+            <div>Efficiency Score: <span id="efficiency-score">0</span></div>
+          </div>
+        </div>
+        
+        <div class="legend">
+          <h2>State Legend</h2>
+          <div class="legend-items">
+            <div class="legend-item">
+              <span class="legend-color" id="legend-idle"></span>
+              <span class="legend-label">Idle</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-moving-up"></span>
+              <span class="legend-label">Moving Up</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-moving-down"></span>
+              <span class="legend-label">Moving Down</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-loading"></span>
+              <span class="legend-label">Loading/Unloading</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-repair"></span>
+              <span class="legend-label">Under Repair</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="elevator-status">
+        <h2>Elevator Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>State</th>
+              <th>Floor</th>
+              <th>Capacity</th>
+            </tr>
+          </thead>
+          <tbody id="elevator-status-body">
+            <!-- Elevator status rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="bundle.js"></script>
+</body>
+</html>

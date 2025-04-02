@@ -1,0 +1,212 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  padding: 20px;
+  background-color: #f0f0f0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.simulation-section {
+  display: flex;
+  gap: 20px;
+}
+
+#canvas-container {
+  width: 800px;
+  height: 600px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.controls-panel {
+  flex: 1;
+  min-width: 300px;
+}
+
+.stats-section {
+  display: flex;
+  gap: 20px;
+}
+
+.stats-panel {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+.stats, .elevator-status, .controls, .legend {
+  padding: 15px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.controls {
+  height: 100%;
+}
+
+.stats, .legend {
+  flex: 1;
+}
+
+.elevator-status {
+  flex: 2;
+  min-width: 400px;
+}
+
+.control-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.control-group span {
+  margin-left: auto;
+  font-weight: bold;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  padding: 10px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+h2 {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+  color: #333;
+}
+
+#stats-container > div {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+#stats-container span {
+  font-weight: bold;
+}
+
+/* Elevator status table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+/* State color classes */
+.state-idle { background-color: #999999; }
+.state-moving_up { background-color: #00FF00; }
+.state-moving_down { background-color: #FF0000; }
+.state-loading { background-color: #FFFF00; }
+.state-repair { background-color: #800080; color: white; }
+
+/* Capacity bar */
+.capacity-bar {
+  width: 80%;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  display: inline-block;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+.capacity-fill {
+  height: 100%;
+  background-color: green;
+  border-radius: 4px;
+}
+
+/* Legend styles */
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 3px;
+}
+
+.legend-label {
+  font-size: 0.9rem;
+}
+
+/* Make the layout responsive */
+@media (max-width: 1100px) {
+  .simulation-section {
+    flex-direction: column;
+  }
+  
+  #canvas-container {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4/3;
+  }
+  
+  .stats-section {
+    flex-direction: column;
+  }
+}

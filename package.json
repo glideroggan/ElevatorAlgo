@@ -1,0 +1,21 @@
+{
+  "name": "elevator-algo",
+  "version": "1.0.0",
+  "description": "Elevator algorithm simulation game",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.js",
+    "dev": "node esbuild.config.js --watch",
+    "start": "yarn build && serve dist"
+  },
+  "dependencies": {
+    "p5": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/p5": "^1.6.2",
+    "esbuild": "^0.19.2",
+    "serve": "^14.2.0",
+    "typescript": "^5.1.6"
+  }
+}
