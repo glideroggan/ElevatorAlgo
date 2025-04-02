@@ -1,5 +1,5 @@
 # TODO
-- another factor we should consider is how long a person had to spend time in the elevator
+- instead of writing out the time in the results, write the age, how long ago the result was published
 
 # BUG
 - When an elevator gets "stuck", we should print out more debug information

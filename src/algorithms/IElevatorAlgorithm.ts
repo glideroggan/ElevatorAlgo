@@ -143,6 +143,10 @@ export interface IElevatorAlgorithm {
    * @param elevator The elevator that needs to decide its next destination
    * @param building Current state of the building and all elevators
    * @returns The floor number the elevator should visit next
+   * 
+   * NOTE: When implementing this method, you should focus on the data relevant to this specific elevator.
+   * Consider using the helper method getElevatorFloorStats() from BaseElevatorAlgorithm to extract
+   * only the floor statistics relevant to this elevator.
    */
   decideNextFloor(
     elevator: ElevatorData,

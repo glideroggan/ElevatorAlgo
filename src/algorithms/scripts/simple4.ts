@@ -37,45 +37,25 @@ export class Simple4 extends BaseElevatorAlgorithm {
             return elevator.currentFloor; // No more floors to visit after filtering
         }
 
-        // Extract wait time information for floors we need to visit, 
-        // prioritizing elevator-specific data when available
-        const floorsWithWaitTimes = floorsToVisit.map(floor => {
-            // Find stats for this floor
-            const floorStat = building.floorStats.find(stat => stat.floor === floor);
-            if (!floorStat || floorStat.waitingCount === 0) {
-                return { floor, waitTime: 0, peopleWaiting: 0 };
-            }
-
-            let waitTime = floorStat.totalMaxWaitTime; // Default to total max wait time
-            let peopleWaiting = floorStat.waitingCount;
-            
-            // Check if we have elevator-specific stats for this floor and elevator
-            if (floorStat.perElevatorStats) {
-                const elevatorStat = floorStat.perElevatorStats.find(es => es.elevatorId === elevator.id);
-                if (elevatorStat && elevatorStat.waitingCount > 0) {
-                    // Use elevator-specific wait time and count
-                    waitTime = elevatorStat.maxWaitTime;
-                    peopleWaiting = elevatorStat.waitingCount;
-                }
-            }
-            
-            return { floor, waitTime, peopleWaiting };
-        });
-
+        // Get only floor statistics relevant to this elevator using our helper
+        const elevatorFloorStats = this.getElevatorFloorStats(elevator, building);
+        
         // Sort by wait time (longest first)
-        const sortedByWaitTime = [...floorsWithWaitTimes]
-            .sort((a, b) => b.waitTime - a.waitTime);
+        const sortedByWaitTime = [...elevatorFloorStats]
+            .sort((a, b) => b.maxWaitTime - a.maxWaitTime);
             
-        console.debug('Floors with wait times:', 
-            sortedByWaitTime.map(f => `Floor ${f.floor}: ${f.waitTime.toFixed(1)}s (${f.peopleWaiting} people)`));
+        console.debug('Floors with wait times for elevator', elevator.id + 1, 
+            sortedByWaitTime
+                .filter(f => f.waitingCount > 0)
+                .map(f => `Floor ${f.floor}: ${f.maxWaitTime.toFixed(1)}s (${f.waitingCount} people)`));
 
         // Find floors with people waiting too long (over 3 seconds)
         const longWaitFloors = sortedByWaitTime
-            .filter(data => data.waitTime > 3 && data.peopleWaiting > 0);
+            .filter(data => data.maxWaitTime > 3 && data.waitingCount > 0);
 
         // If there are people waiting over threshold and elevator not full, prioritize them
         if (elevator.passengers < elevator.capacity && longWaitFloors.length > 0) {
-            console.debug(`Prioritizing floor ${longWaitFloors[0].floor} with max wait ${longWaitFloors[0].waitTime.toFixed(1)}s`);
+            console.debug(`Prioritizing floor ${longWaitFloors[0].floor} with max wait ${longWaitFloors[0].maxWaitTime.toFixed(1)}s`);
             return longWaitFloors[0].floor;
         }
 

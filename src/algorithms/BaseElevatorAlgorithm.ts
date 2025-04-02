@@ -95,4 +95,25 @@ export abstract class BaseElevatorAlgorithm implements IElevatorAlgorithm {
     
     return true; // Default to true for other states
   }
+
+  /**
+   * Helper method to extract floor statistics relevant to this specific elevator
+   */
+  protected getElevatorFloorStats(elevator: ElevatorData, building: BuildingData) {
+    return building.floorStats.map(floorStat => {
+      // Find elevator-specific data if available
+      const elevatorData = floorStat.perElevatorStats?.find(data => 
+        data.elevatorId === elevator.id
+      );
+      
+      return {
+        floor: floorStat.floor,
+        waitingCount: elevatorData?.waitingCount || 0,
+        maxWaitTime: elevatorData?.maxWaitTime || 0,
+        avgWaitTime: elevatorData?.avgWaitTime || 0,
+        // Include whether this floor is in the elevator's visit list
+        isInVisitList: elevator.floorsToVisit.includes(floorStat.floor)
+      };
+    }).filter(stat => stat.waitingCount > 0 || stat.isInVisitList);
+  }
 }
