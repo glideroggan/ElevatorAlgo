@@ -6,6 +6,8 @@ export class Person {
   private _destinationFloor: number;
   private _waitingTime: number = 0;
   private _waitStartTime: number;
+  private _journeyTime: number = 0; // Time spent in elevator
+  private _journeyStartTime: number = 0; // When person enters elevator
   private _color: p5.Color;
   private _assignedElevator: number = -1;
 
@@ -34,13 +36,26 @@ export class Person {
   get waitTime(): number {
     return this._waitingTime;
   }
-
-  get destinationFloor(): number {
+  
+  get journeyTime(): number {
+    return this._journeyTime;
+  }
+  
+  // For backward compatibility
+  get WaitTime(): number {
+    return this._waitingTime;
+  }
+  
+  get DestinationFloor(): number {
     return this._destinationFloor;
   }
 
-  get startFloor(): number {
+  get StartFloor(): number {
     return this._startFloor;
+  }
+
+  get totalServiceTime(): number {
+    return this._waitingTime + this._journeyTime; // Total time from arrival to destination
   }
 
   get assignedElevator(): number {
@@ -51,19 +66,6 @@ export class Person {
     return this._hasGivenUp;
   }
 
-  // For backwards compatibility
-  get WaitTime(): number {
-    return this._waitingTime;
-  }
-
-  get DestinationFloor(): number {
-    return this._destinationFloor;
-  }
-
-  get StartFloor(): number {
-    return this._startFloor;
-  }
-
   public updateWaitingTime(): void {
     this._waitingTime = (this.p.millis() - this._waitStartTime) / 1000; // in seconds
 
@@ -71,6 +73,21 @@ export class Person {
     if (!this._hasGivenUp && this.p.millis() - this._waitStartTime > this._giveUpThreshold) {
       this._hasGivenUp = true;
       console.debug(`Person at floor ${this._startFloor} gave up after waiting ${this._waitingTime.toFixed(1)}s`);
+    }
+  }
+
+  public startJourney(): void {
+    // Call this when a person enters an elevator
+    this._journeyStartTime = this.p.millis();
+    // Final wait time recorded at moment of elevator entry
+    this._waitingTime = (this._journeyStartTime - this._waitStartTime) / 1000;
+  }
+  
+  public completeJourney(): void {
+    // Call this when a person reaches their destination
+    if (this._journeyStartTime > 0) {
+      this._journeyTime = (this.p.millis() - this._journeyStartTime) / 1000;
+      console.debug(`Person completed journey from ${this._startFloor} to ${this._destinationFloor}: Wait time: ${this._waitingTime.toFixed(1)}s, Journey time: ${this._journeyTime.toFixed(1)}s`);
     }
   }
 

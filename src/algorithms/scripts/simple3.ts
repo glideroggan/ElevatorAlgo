@@ -1,12 +1,26 @@
 import { BaseElevatorAlgorithm } from "../BaseElevatorAlgorithm";
 import { PersonData, BuildingData, ElevatorData } from "../IElevatorAlgorithm";
 
-export class Simple1 extends BaseElevatorAlgorithm {
-    readonly name = "Simple1";
-    readonly description = "A simple algorithm that visits floors in ascending order";
+export class Simple3 extends BaseElevatorAlgorithm {
+    readonly name = "Simple3";
+    readonly description = "An extension of simple2";
 
     assignElevatorToPerson(person: PersonData, startFloor: number, building: BuildingData): number {
-        return 0; // Always assign to elevator 0
+        // average the load between all elevators
+        let current = 0;
+        let chosen = 0
+        building.elevators.forEach((elevator, index) => {
+            if (elevator.passengers == 0) {
+                chosen = index
+                return
+            }
+            if (current !== 0 && elevator.passengers < current) {
+                chosen = index
+                return
+            }
+            current = elevator.passengers
+        })
+        return chosen; 
     }
     
     decideNextFloor(elevator: ElevatorData, building: BuildingData): number {
@@ -33,11 +47,5 @@ export class Simple1 extends BaseElevatorAlgorithm {
         }
         // otwerwise, sort the remaining floors in ascending order and return the first one
         return floorsToVisit[0]
-        
-        // Create a copy and sort floors in ascending order
-        // const visits = [...floorsToVisit].sort((a, b) => a - b);
-        
-        // // Return the first floor in our sorted list
-        // return visits[0];
     }
 }

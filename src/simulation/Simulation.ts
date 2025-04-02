@@ -2,8 +2,8 @@ import p5 from 'p5';
 import { Building } from '../models/Building';
 import { SimulationSettings, SimulationStatistics } from '../models/SimulationSettings';
 import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
-import { SimplePlayerAlgorithm } from '../algorithms/scripts/SimplePlayerAlgorithm';
-import { Simple1 } from '../algorithms/scripts/simple1';
+import { BaseElevatorAlgorithm } from '../algorithms/BaseElevatorAlgorithm';
+import { reg } from '../algorithms/scripts/register';
 
 export class Simulation {
   private p: p5;
@@ -18,6 +18,9 @@ export class Simulation {
     this.settings = settings;
     this.building = new Building(p, settings);
     
+    // Expose the building reference globally for components that need it
+    (window as any).simulationBuilding = this.building;
+    
     // Calculate people spawn rate based on settings
     this.peopleSpawnRate = 60 / settings.peopleFlowRate; // frames between spawns
 
@@ -25,9 +28,9 @@ export class Simulation {
     const algorithmManager = this.building.getElevatorSystem().getAlgorithmManager();
     
     // Register the player algorithm
-    const playerAlgo = new SimplePlayerAlgorithm();
-    algorithmManager.registerAlgorithm('player', playerAlgo);
-    algorithmManager.registerAlgorithm('simple1', new Simple1());
+    reg().forEach((algo:BaseElevatorAlgorithm) => {
+      algorithmManager.registerAlgorithm(algo);
+    })
 
     // Listen for stats updates from Building
     this.building.onStatsUpdated((stats) => {
@@ -89,12 +92,9 @@ export class Simulation {
 
     // Re-register algorithms with the new building's elevator system
     const algorithmManager = this.building.getElevatorSystem().getAlgorithmManager();
-    
-    // TODO: we should call into something else here, instead of re-registering
-    // Re-register player algorithm
-    console.log('Re-registering player algorithm');
-    algorithmManager.registerAlgorithm('player', new SimplePlayerAlgorithm());
-    algorithmManager.registerAlgorithm('simple1', new Simple1());
+    reg().forEach((algo:BaseElevatorAlgorithm) => {
+      algorithmManager.registerAlgorithm(algo);
+    })
     
     // Re-apply current algorithm selection
     if (this.currentAlgorithmId) {
@@ -114,7 +114,9 @@ export class Simulation {
       averageWaitTime: buildingStats.averageWaitTime,
       totalPeopleServed: buildingStats.totalPeopleServed,
       peopleWhoGaveUp: buildingStats.peopleWhoGaveUp,
-      efficiencyScore: buildingStats.efficiencyScore
+      efficiencyScore: buildingStats.efficiencyScore,
+      averageJourneyTime: buildingStats.averageJourneyTime || 0,
+      averageServiceTime: buildingStats.averageServiceTime || 0
     };
     
     return stats;

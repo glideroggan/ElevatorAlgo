@@ -43,6 +43,9 @@ export class Building {
     this.lanes = settings.numberOfLanes;
     this.elevators = [];
     
+    // Ensure we're properly exposed on window for cross-component access
+    (window as any).simulationBuilding = this;
+    
     // Calculate floor height and lane width based on canvas size and settings
     this.floorHeight = (p.height * 0.9) / (this.floors - 1);
     this.laneWidth = p.width / (this.lanes + 1);
@@ -304,8 +307,8 @@ export class Building {
       
       // Convert people to PersonData for the interface
       const waitingPeople = people.map(person => ({
-        startFloor: person.startFloor,
-        destinationFloor: person.destinationFloor,
+        startFloor: person.StartFloor,
+        destinationFloor: person.DestinationFloor,
         waitTime: person.waitTime
       }));
       
@@ -325,6 +328,14 @@ export class Building {
         avgWaitTime: avgWait,
         waitingPeople: waitingPeople
       });
+    }
+
+    // Debug log to check if floor stats are being collected properly
+    if (stats.some(s => s.waitingCount > 0)) {
+      console.debug('FloorStats generated with waiting people:', 
+        stats.filter(s => s.waitingCount > 0)
+          .map(s => `Floor ${s.floor}: ${s.waitingCount} people, max wait: ${s.maxWaitTime.toFixed(1)}s`)
+      );
     }
     
     return stats;
@@ -461,13 +472,17 @@ export class Building {
     
     // Calculate average wait time using only people after warmup
     let totalWaitTime = 0;
+    let totalJourneyTime = 0; // Add tracking for journey time
     let count = this.peopleServedAfterWarmup.length;
     
     this.peopleServedAfterWarmup.forEach(person => {
       totalWaitTime += person.WaitTime;
+      totalJourneyTime += person.journeyTime || 0; // Account for older data that might not have journeyTime
     });
     
     const avgWaitTime = count > 0 ? totalWaitTime / count : 0;
+    const avgJourneyTime = count > 0 ? totalJourneyTime / count : 0;
+    const avgServiceTime = avgWaitTime + avgJourneyTime;
     
     // Calculate efficiency score with difficulty factors
     let efficiencyScore = 0;
@@ -479,6 +494,11 @@ export class Building {
       // Penalties remain the same
       const waitTimePenalty = Math.min(500, avgWaitTime * 15);
       efficiencyScore -= waitTimePenalty;
+      
+      // Add penalty for journey time - less severe than wait time penalty
+      // as wait time is more annoying to users than journey time
+      const journeyTimePenalty = Math.min(300, avgJourneyTime * 10);
+      efficiencyScore -= journeyTimePenalty;
       
       const giveUpPenalty = Math.min(300, this.stairsUsedCount * 10);
       efficiencyScore -= giveUpPenalty;
@@ -514,6 +534,7 @@ export class Building {
       console.debug(`Efficiency score calculation:
         Base: 1000
         Wait time penalty: -${waitTimePenalty.toFixed(1)} (${avgWaitTime.toFixed(1)}s avg wait)
+        Journey time penalty: -${journeyTimePenalty.toFixed(1)} (${avgJourneyTime.toFixed(1)}s avg journey)
         Give up penalty: -${giveUpPenalty} (${this.stairsUsedCount} people)
         Utilization penalty: -${utilizationPenalty.toFixed(1)} (${(avgUtilization * 100).toFixed(1)}% vs ideal 70%)
         Difficulty bonuses: +${difficultyBonus}
@@ -529,6 +550,8 @@ export class Building {
     // Store the calculated statistics in cache
     this.cachedStatistics = {
       averageWaitTime: avgWaitTime,
+      averageJourneyTime: avgJourneyTime, // Add journey time to stats
+      averageServiceTime: avgServiceTime, // Total time from arrival to destination
       totalPeopleServed: count,
       peopleWhoGaveUp: this.stairsUsedCount,
       efficiencyScore: Math.max(0, Math.round(efficiencyScore)),

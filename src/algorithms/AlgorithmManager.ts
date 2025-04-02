@@ -1,5 +1,6 @@
 import { IElevatorAlgorithm } from './IElevatorAlgorithm';
 import { DefaultElevatorAlgorithm } from './scripts/DefaultElevatorAlgorithm';
+import { reg } from './scripts/register';
 
 /**
  * Manages the available elevator algorithms and allows switching between them
@@ -10,17 +11,19 @@ export class AlgorithmManager {
   
   constructor() {
     // Register the default algorithm
-    const defaultAlgo = new DefaultElevatorAlgorithm();
-    this.algorithms.set('simple1', defaultAlgo);
+    const algos = reg()
+    console.debug('algos', algos) 
+    const defaultAlgo = algos.find((algo) => algo.name === 'Simple3') || new DefaultElevatorAlgorithm();
+    this.algorithms.set(defaultAlgo.name, defaultAlgo);
     this.currentAlgorithm = defaultAlgo;
   }
   
   /**
    * Register a new algorithm
    */
-  public registerAlgorithm(id: string, algorithm: IElevatorAlgorithm): void {
-    console.debug(`Registering algorithm: ${id}`);
-    this.algorithms.set(id, algorithm);
+  public registerAlgorithm(algorithm: IElevatorAlgorithm): void {
+    console.debug(`Registering algorithm: ${algorithm.name}`);
+    this.algorithms.set(algorithm.name, algorithm);
   }
   
   /**

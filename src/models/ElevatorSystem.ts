@@ -37,7 +37,7 @@ export class ElevatorSystem {
   }
 
   /**
-   * Find the best elevator to serve a specific person using the current algorithm
+   * Assign an elevator to a person using the current algorithm
    */
   public assignElevatorToPerson(
     person: Person, 
@@ -48,8 +48,8 @@ export class ElevatorSystem {
     
     // Convert person to PersonData
     const personData: PersonData = {
-      startFloor: person.startFloor,
-      destinationFloor: person.destinationFloor,
+      startFloor: person.StartFloor,
+      destinationFloor: person.DestinationFloor,
       waitTime: person.waitTime
     };
     
@@ -64,15 +64,46 @@ export class ElevatorSystem {
   /**
    * Decide which floor an elevator should visit next using the current algorithm
    */
-  public decideNextFloor(elevator: Elevator): number {
+  public decideNextFloor(elevator: Elevator, floorStats?: FloorStats[]): number {
     const elevatorData = this.convertElevatorToData(elevator);
-    const building = this.getBuildingData();
     
-    // Delegate to the current algorithm
-    return this.algorithmManager.getCurrentAlgorithm().decideNextFloor(
-      elevatorData,
-      building
-    );
+    // Always try to get fresh floor stats if not provided
+    if (!floorStats || floorStats.length === 0) {
+      const buildingRef = (window as any).simulationBuilding;
+      if (buildingRef && typeof buildingRef.getFloorStats === 'function') {
+        floorStats = buildingRef.getFloorStats();
+      }
+    }
+    
+    const building = this.getBuildingData(floorStats);
+    
+    try {
+      // Log some debug info about what's being decided
+      if (floorStats && floorStats.some(s => s.waitingCount > 0)) {
+        console.debug(`Deciding next floor for elevator ${elevator.id + 1} with floorStats:`, 
+          floorStats.filter(s => s.waitingCount > 0).map(s => 
+            `Floor ${s.floor}: ${s.waitingCount} people, max wait: ${s.maxWaitTime.toFixed(1)}s`
+          )
+        );
+      }
+      
+      // Delegate to the current algorithm
+      const nextFloor = this.algorithmManager.getCurrentAlgorithm().decideNextFloor(
+        elevatorData,
+        building
+      );
+      
+      // Validate the returned floor
+      if (typeof nextFloor === 'number' && !isNaN(nextFloor) && nextFloor >= 0 && nextFloor < building.totalFloors) {
+        return nextFloor;
+      } else {
+        console.warn(`Algorithm returned invalid floor: ${nextFloor}, using current floor instead`);
+        return elevator.currentFloor;
+      }
+    } catch (error) {
+      console.error("Error deciding next floor:", error);
+      return elevator.currentFloor; // Safe fallback
+    }
   }
   
   /**

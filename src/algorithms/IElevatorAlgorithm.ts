@@ -65,6 +65,7 @@ export interface PersonData {
   startFloor: number;
   destinationFloor: number;
   waitTime: number;
+  journeyTime?: number; // Optional for backward compatibility
 }
 
 export interface FloorStats {
@@ -72,7 +73,8 @@ export interface FloorStats {
   waitingCount: number;
   maxWaitTime: number;
   avgWaitTime: number;
-  waitingPeople: PersonData[];
+  avgJourneyTime?: number; // Average journey time for people who visited this floor
+  waitingPeople?: PersonData[]; // People waiting on this floor
 }
 
 export interface BuildingData {

@@ -9,8 +9,10 @@ export interface SimulationSettings {
 export interface SimulationStatistics {
     warmupActive: boolean;
     warmupTimeLeft: number;
-    averageWaitTime: number;
     totalPeopleServed: number;
-    peopleWhoGaveUp: number; // Add this missing property
+    averageWaitTime: number;
+    averageJourneyTime: number; // New metric
+    averageServiceTime: number; // Total time (wait + journey)
+    peopleWhoGaveUp: number;
     efficiencyScore: number;
 }

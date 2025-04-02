@@ -71,9 +71,10 @@ body {
 }
 
 .control-group {
-  margin-bottom: 15px;
+  /* margin-bottom: 5px; */
   display: flex;
   flex-direction: column;
+  gap: 0px;
 }
 
 .control-group span {
@@ -259,7 +260,7 @@ h2 {
 }
 
 .results-table-container {
-  max-height: 300px;
+  /* max-height: 300px; */
   overflow-y: auto;
 }
 

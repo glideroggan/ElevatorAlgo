@@ -1,7 +1,5 @@
 # TODO
-- lets start with a POC where we have the basics
-- the algo shouldn't suggest an elevator that seems stuck, so each elevator should track its own errors
-- when adding a floor to an elevator, we should probably re-optimize the route for the elevator
+- another factor we should consider is how long a person had to spend time in the elevator
 
 # BUG
 - looks like elevator is stopping on floors to pick up ppl, even though the elevator is full

@@ -1,6 +1,7 @@
 import p5 from 'p5';
 import { Person } from './Person';
 import { ElevatorSystem } from './ElevatorSystem';
+import { FloorStats } from '../algorithms/IElevatorAlgorithm';
 
 export enum ElevatorState {
   IDLE,
@@ -136,7 +137,7 @@ export class Elevator {
 
   get passengerDestinations(): Set<number> {
     const destinations = new Set<number>();
-    this._people.forEach((person) => destinations.add(person.destinationFloor));
+    this._people.forEach((person) => destinations.add(person.DestinationFloor));
     return destinations;
   }
 
@@ -245,6 +246,19 @@ export class Elevator {
             this._loadingTimer = currentTime;
           } else {
             this._targetFloor = this.getNextFloorFromSystem();
+
+            // Ensure we have a valid target floor before proceeding
+            if (typeof this._targetFloor !== 'number' || isNaN(this._targetFloor) || 
+                this._targetFloor < 0 || this._targetFloor >= this._totalFloors) {
+              console.error(`Elevator ${this._id + 1} received invalid target floor: ${this._targetFloor}`);
+              this._targetFloor = this._currentFloor;
+              this._floorsToVisit.delete(this._currentFloor);
+              if (this._floorsToVisit.size > 0) {
+                this._targetFloor = this.decideNextFloorLocally();
+              } else {
+                break;
+              }
+            }
 
             if (this._targetFloor === this._currentFloor) {
               this._floorsToVisit.delete(this._currentFloor);
@@ -423,7 +437,7 @@ export class Elevator {
       Reason: ${reason}
       Current state: ${ElevatorState[this._state]} for ${(timeInCurrentState / 1000).toFixed(1)}s
       Current floor: ${this._currentFloor}
-      Target floor: ${this._targetFloor}
+      Target floor: ${this._targetFloor !== undefined ? this._targetFloor : "None"} 
       Position: ${this._y.toFixed(1)}px (expected: ${(this.p.height - this._currentFloor * this._floorHeight - 40).toFixed(
         1
       )}px)
@@ -566,7 +580,7 @@ export class Elevator {
       this.p.fill(80);
 
       const passengerDestinations = new Set<number>();
-      this._people.forEach((person) => passengerDestinations.add(person.destinationFloor));
+      this._people.forEach((person) => passengerDestinations.add(person.DestinationFloor));
 
       const pickupFloors = Array.from(this._floorsToVisit)
         .filter((floor) => !passengerDestinations.has(floor))
@@ -606,17 +620,22 @@ export class Elevator {
 
   private unloadPeopleAtFloor(floor: number): void {
     const peopleToUnload = this._people.filter(
-      (person) => person.destinationFloor === floor
+      (person) => person.DestinationFloor === floor
     );
 
     if (peopleToUnload.length > 0) {
+      // Record journey completion for each person
+      peopleToUnload.forEach(person => {
+        person.completeJourney();
+      });
+      
       this.unloadedPeople.push({
         floor: floor,
         count: peopleToUnload.length,
         time: this.p.millis(),
       });
 
-      this._people = this._people.filter((person) => person.destinationFloor !== floor);
+      this._people = this._people.filter((person) => person.DestinationFloor !== floor);
     }
   }
 
@@ -626,8 +645,9 @@ export class Elevator {
 
   public addPerson(person: Person): boolean {
     if (this._people.length < this._capacity) {
+      person.startJourney(); // Mark the start of the journey
       this._people.push(person);
-      this.addFloorToVisit(person.destinationFloor);
+      this.addFloorToVisit(person.DestinationFloor);
       return true;
     }
     return false;
@@ -665,7 +685,30 @@ export class Elevator {
 
   private getNextFloorFromSystem(): number {
     if (this.elevatorSystem) {
-      return this.elevatorSystem.decideNextFloor(this);
+      // Get fresh floor stats directly from building
+      let floorStats = undefined;
+      const buildingRef = (window as any).simulationBuilding;
+      if (buildingRef && typeof buildingRef.getFloorStats === 'function') {
+        floorStats = buildingRef.getFloorStats();
+        
+        // If we have floor stats with waiting people, log for debugging
+        const waitingFloors = floorStats.filter((stat:FloorStats) => stat.waitingCount > 0);
+        if (waitingFloors.length > 0) {
+          console.debug(`Elevator ${this._id + 1} checking floors with waiting people:`, 
+            waitingFloors.map((f:FloorStats) => `Floor ${f.floor}: ${f.waitingCount} people, max wait: ${f.maxWaitTime.toFixed(1)}s`)
+          );
+        }
+      }
+      
+      // Pass floor stats to the decision function
+      const nextFloor = this.elevatorSystem.decideNextFloor(this, floorStats);
+      
+      // Validate that we got a valid floor number
+      if (typeof nextFloor === 'number' && !isNaN(nextFloor) && nextFloor >= 0 && nextFloor < this._totalFloors) {
+        return nextFloor;
+      } else {
+        console.warn(`Elevator ${this._id + 1} received invalid floor: ${nextFloor}, falling back to local decision`);
+      }
     }
     return this.decideNextFloorLocally();
   }
@@ -676,7 +719,7 @@ export class Elevator {
     }
 
     const passengerDestinations = new Set<number>();
-    this._people.forEach((person) => passengerDestinations.add(person.destinationFloor));
+    this._people.forEach((person) => passengerDestinations.add(person.DestinationFloor));
 
     const destinationsToVisit = Array.from(this._floorsToVisit).filter((floor) =>
       passengerDestinations.has(floor)
