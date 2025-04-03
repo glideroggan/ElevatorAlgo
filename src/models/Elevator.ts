@@ -10,22 +10,25 @@ export enum ElevatorState {
   REPAIR
 }
 
+type Point = {
+  x: number;
+  y: number;
+}
+
 export class Elevator {
   private p: p5;
-  private _id: number;
-  private _x: number;
+  id: number;
+  render: Point
   private _capacity: number;
   private _speed: number;
   private _totalFloors: number;
   private _floorHeight: number;
-
   private _currentFloor: number = 0;
   private _targetFloor: number = 0;
-  private _y: number;
+  
   private _state: ElevatorState = ElevatorState.IDLE;
   private _people: Person[] = [];
   private _floorsToVisit: Set<number> = new Set();
-  private _loadingTimer: number = 0;
   private _loadingDuration: number = 1000; // 1 second loading time
 
   private unloadedPeople: { floor: number; count: number; time: number }[] = [];
@@ -72,21 +75,21 @@ export class Elevator {
     floorHeight: number
   ) {
     this.p = p;
-    this._id = id;
-    this._x = x;
+    this.id = id;
+    // this._x = x;
+    this.render = { x: x, y: p.height - 40 };
     this._capacity = capacity;
     this._speed = speed;
     this._totalFloors = totalFloors;
     this._floorHeight = floorHeight;
 
-    this._y = p.height - 40;
     this._currentFloor = 0;
     this.stateStartTime = p.millis();
-    this.lastPositionY = this._y;
+    this.lastPositionY = this.render.y;
     this.stuckCheckTime = p.millis();
 
     for (let i = 0; i < this.historySize; i++) {
-      this.positionHistory.push(this._y);
+      this.positionHistory.push(this.render.y);
       this.stateHistory.push(this._state);
     }
 
@@ -96,9 +99,9 @@ export class Elevator {
   }
 
   // Properly implemented getters
-  get id(): number {
-    return this._id;
-  }
+  // get id(): number {
+  //   return this._id;
+  // }
   
   get isIdle(): boolean {
     return this._state === ElevatorState.IDLE;
@@ -122,9 +125,9 @@ export class Elevator {
     return this._state === ElevatorState.IDLE ? -1 : this._targetFloor;
   }
 
-  get xPosition(): number {
-    return this._x;
-  }
+  // get xPosition(): number {
+  //   return this._x;
+  // }
 
   get numberOfStops(): number {
     return this._floorsToVisit.size;
@@ -161,9 +164,9 @@ export class Elevator {
     return this._state;
   }
   
-  public getXPosition(): number {
-    return this._x;
-  }
+  // public getXPosition(): number {
+  //   return this._x;
+  // }
   
   // Keep for compatibility with existing code
   get NumberOfPeople(): number {
@@ -197,11 +200,11 @@ export class Elevator {
       
       if (!stateJustChanged && 
           (this._state === ElevatorState.MOVING_UP || this._state === ElevatorState.MOVING_DOWN) &&
-          Math.abs(this._y - this.lastPositionY) < this.movementThreshold) {
-        console.warn(`Elevator ${this._id + 1} not making progress in ${this._state} state`);
+          Math.abs(this.render.y - this.lastPositionY) < this.movementThreshold) {
+        console.warn(`Elevator ${this.id + 1} not making progress in ${this._state} state`);
         this.enterRepairMode("No position change detected after movement grace period");
       }
-      this.lastPositionY = this._y;
+      this.lastPositionY = this.render.y;
       this.positionCheckTimer = currentTime;
     }
 
@@ -213,11 +216,11 @@ export class Elevator {
       this.stateChangeHistory.push({ state: this._state, time: currentTime });
       
       // Reset position check variables on state change to avoid false positives
-      this.lastPositionY = this._y;
+      this.lastPositionY = this.render.y;
       this.positionCheckTimer = currentTime;
 
       console.debug(
-        `Elevator ${this._id + 1} changed from ${ElevatorState[previousState]} to ${ElevatorState[this._state]} after ${(timeInPrevState / 1000).toFixed(1)}s`
+        `Elevator ${this.id + 1} changed from ${ElevatorState[previousState]} to ${ElevatorState[this._state]} after ${(timeInPrevState / 1000).toFixed(1)}s`
       );
 
       this.logRouteUpdate();
@@ -226,7 +229,7 @@ export class Elevator {
     switch (this._state) {
       case ElevatorState.REPAIR:
         if (currentTime - this.repairStartTime >= this.stuckThresholds[ElevatorState.REPAIR]) {
-          console.debug(`Elevator ${this._id + 1} repair complete - returning to service`);
+          console.debug(`Elevator ${this.id + 1} repair complete - returning to service`);
           this._state = ElevatorState.IDLE;
           this.stateStartTime = currentTime;
           this.stuckWarning = false;
@@ -237,19 +240,18 @@ export class Elevator {
         if (this._floorsToVisit.size > 0) {
           if (this._floorsToVisit.has(this._currentFloor)) {
             console.debug(
-              `Elevator ${this._id + 1} starting to load at floor ${this._currentFloor} (already here)`
+              `Elevator ${this.id + 1} starting to load at floor ${this._currentFloor} (already here)`
             );
             this._floorsToVisit.delete(this._currentFloor);
             this._state = ElevatorState.LOADING;
             this.stateStartTime = currentTime;
-            this._loadingTimer = currentTime;
           } else {
             this._targetFloor = this.getNextFloorFromSystem();
 
             // Ensure we have a valid target floor before proceeding
             if (typeof this._targetFloor !== 'number' || isNaN(this._targetFloor) || 
                 this._targetFloor < 0 || this._targetFloor >= this._totalFloors) {
-              console.error(`Elevator ${this._id + 1} received invalid target floor: ${this._targetFloor}`);
+              console.error(`Elevator ${this.id + 1} received invalid target floor: ${this._targetFloor}`);
               this._targetFloor = this._currentFloor;
               this._floorsToVisit.delete(this._currentFloor);
               if (this._floorsToVisit.size > 0) {
@@ -288,10 +290,10 @@ export class Elevator {
 
       case ElevatorState.MOVING_UP:
         const targetYUp = this.p.height - this._targetFloor * this._floorHeight - 40;
-        if (this._y > targetYUp) {
-          this._y -= this._speed;
-          if (this._y <= targetYUp) {
-            this._y = targetYUp;
+        if (this.render.y > targetYUp) {
+          this.render.y -= this._speed;
+          if (this.render.y <= targetYUp) {
+            this.render.y = targetYUp;
             this._currentFloor = this._targetFloor;
             this._floorsToVisit.delete(this._targetFloor);
             this._state = ElevatorState.LOADING;
@@ -303,10 +305,10 @@ export class Elevator {
 
       case ElevatorState.MOVING_DOWN:
         const targetYDown = this.p.height - this._targetFloor * this._floorHeight - 40;
-        if (this._y < targetYDown) {
-          this._y += this._speed;
-          if (this._y >= targetYDown) {
-            this._y = targetYDown;
+        if (this.render.y < targetYDown) {
+          this.render.y += this._speed;
+          if (this.render.y >= targetYDown) {
+            this.render.y = targetYDown;
             this._currentFloor = this._targetFloor;
             this._floorsToVisit.delete(this._targetFloor);
             this._state = ElevatorState.LOADING;
@@ -334,7 +336,7 @@ export class Elevator {
     this.positionHistory.shift();
     this.stateHistory.shift();
 
-    this.positionHistory.push(this._y);
+    this.positionHistory.push(this.render.y);
     this.stateHistory.push(this._state);
   }
 
@@ -360,13 +362,13 @@ export class Elevator {
       this._state === ElevatorState.MOVING_UP &&
       this._currentFloor >= this._totalFloors - 1
     ) {
-      console.warn(`Elevator ${this._id + 1} trying to move up at the top floor`);
+      console.warn(`Elevator ${this.id + 1} trying to move up at the top floor`);
       this.enterRepairMode("Attempted to move up at top floor");
       return;
     }
 
     if (this._state === ElevatorState.MOVING_DOWN && this._currentFloor <= 0) {
-      console.warn(`Elevator ${this._id + 1} trying to move down at the ground floor`);
+      console.warn(`Elevator ${this.id + 1} trying to move down at the ground floor`);
       this.enterRepairMode("Attempted to move down at ground floor");
       return;
     }
@@ -390,7 +392,7 @@ export class Elevator {
         timeInCurrentState > 2000 // At least 2 seconds in the same state
       ) {
         console.warn(
-          `Elevator ${this._id + 1} stuck in ${ElevatorState[this._state]} state for ${(timeInCurrentState / 1000).toFixed(1)}s - position not changing`
+          `Elevator ${this.id + 1} stuck in ${ElevatorState[this._state]} state for ${(timeInCurrentState / 1000).toFixed(1)}s - position not changing`
         );
         this.enterRepairMode("No position change detected while moving");
         return;
@@ -404,7 +406,7 @@ export class Elevator {
         timeInState > threshold * 3) {
       if (!this.stuckWarning) {
         console.warn(
-          `Elevator ${this._id + 1} stuck in ${ElevatorState[this._state]} state for ${(timeInState / 1000).toFixed(1)}s at floor ${this._currentFloor}`
+          `Elevator ${this.id + 1} stuck in ${ElevatorState[this._state]} state for ${(timeInState / 1000).toFixed(1)}s at floor ${this._currentFloor}`
         );
         this.stuckWarning = true;
       }
@@ -422,7 +424,7 @@ export class Elevator {
     
     // Don't break down if we just changed state (less than 1 second ago)
     if (timeInCurrentState < 1000) {
-      console.debug(`Elevator ${this._id + 1} skipping unnecessary repair: ${reason} (state too new: ${timeInCurrentState}ms)`);
+      console.debug(`Elevator ${this.id + 1} skipping unnecessary repair: ${reason} (state too new: ${timeInCurrentState}ms)`);
       return;
     }
     
@@ -432,12 +434,12 @@ export class Elevator {
     );
 
     console.error(`
-      ===== ELEVATOR ${this._id + 1} BREAKDOWN REPORT =====
+      ===== ELEVATOR ${this.id + 1} BREAKDOWN REPORT =====
       Reason: ${reason}
       Current state: ${ElevatorState[this._state]} for ${(timeInCurrentState / 1000).toFixed(1)}s
       Current floor: ${this._currentFloor}
       Target floor: ${this._targetFloor !== undefined ? this._targetFloor : "None"} 
-      Position: ${this._y.toFixed(1)}px (expected: ${(this.p.height - this._currentFloor * this._floorHeight - 40).toFixed(
+      Position: ${this.render.y.toFixed(1)}px (expected: ${(this.p.height - this._currentFloor * this._floorHeight - 40).toFixed(
         1
       )}px)
       Passengers: ${this._people.length}/${this._capacity}
@@ -447,19 +449,19 @@ export class Elevator {
     `);
 
     const floorPos = this.p.height - this._currentFloor * this._floorHeight - 40;
-    const currentFloorDist = Math.abs(this._y - floorPos);
+    const currentFloorDist = Math.abs(this.render.y - floorPos);
 
     const floorAbovePos = this.p.height - (this._currentFloor + 1) * this._floorHeight - 40;
-    const floorAboveDist = Math.abs(this._y - floorAbovePos);
+    const floorAboveDist = Math.abs(this.render.y - floorAbovePos);
 
     if (currentFloorDist > 5 && floorAboveDist > 5) {
       if (currentFloorDist < floorAboveDist) {
-        this._y = floorPos;
+        this.render.y = floorPos;
       } else {
-        this._y = floorAbovePos;
+        this.render.y = floorAbovePos;
         this._currentFloor += 1;
       }
-      console.debug(`Elevator ${this._id + 1} snapped to floor ${this._currentFloor} for repair`);
+      console.debug(`Elevator ${this.id + 1} snapped to floor ${this._currentFloor} for repair`);
     }
 
     this.evacuatePassengers();
@@ -472,7 +474,7 @@ export class Elevator {
 
   private evacuatePassengers(): void {
     if (this._people.length > 0) {
-      console.debug(`Evacuating ${this._people.length} passengers from elevator ${this._id + 1}`);
+      console.debug(`Evacuating ${this._people.length} passengers from elevator ${this.id + 1}`);
       this.unloadPeopleAtFloor(this._currentFloor);
     }
   }
@@ -495,7 +497,7 @@ export class Elevator {
 
   public draw(): void {
     this.p.stroke(100);
-    this.p.line(this._x, 0, this._x, this.p.height);
+    this.p.line(this.render.x, 0, this.render.x, this.p.height);
 
     if (this._state === ElevatorState.REPAIR) {
       this.p.fill(100, 100, 100);
@@ -508,7 +510,7 @@ export class Elevator {
     this.p.fill(0);
     this.p.noStroke();
     this.p.textAlign(this.p.CENTER, this.p.CENTER);
-    this.p.text(this._id + 1, this._x, this._y + 20);
+    this.p.text(this.id + 1, this._x, this._y + 20);
 
     const capacityPercentage = this._people.length / this._capacity;
     this.p.fill(
@@ -698,7 +700,7 @@ export class Elevator {
       if (typeof nextFloor === 'number' && !isNaN(nextFloor) && nextFloor >= 0 && nextFloor < this._totalFloors) {
         return nextFloor;
       } else {
-        console.warn(`Elevator ${this._id + 1} received invalid floor: ${nextFloor}, falling back to local decision`);
+        console.warn(`Elevator ${this.id + 1} received invalid floor: ${nextFloor}, falling back to local decision`);
       }
     }
     return this.decideNextFloorLocally();

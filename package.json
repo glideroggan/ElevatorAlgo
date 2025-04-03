@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "node esbuild.config.js",
-    "dev": "node esbuild.config.js --watch",
+    "dev": "tsc && node esbuild.config.js --watch",
     "start": "yarn build && serve dist"
   },
   "dependencies": {

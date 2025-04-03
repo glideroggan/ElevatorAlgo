@@ -1,4 +1,4 @@
-import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
+import { StatsTracker } from '../stats/StatsTracker';
 
 export class ResultsPanel {
   private tableBody: HTMLElement;

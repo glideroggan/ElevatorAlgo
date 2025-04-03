@@ -1,4 +1,5 @@
 # TODO
+- start using web components, vanilla
 - 🔧Clean up elevator class, its too big and too messy
 - instead of writing out the time in the results, write the age, how long ago the result was published
 
