@@ -4,6 +4,7 @@ export interface SimulationSettings {
     peopleFlowRate: number;
     elevatorSpeed: number;
     elevatorCapacity: number;
+    seed?: number; // Optional seed for reproducible simulations
 }
 
 export interface SimulationStatistics {

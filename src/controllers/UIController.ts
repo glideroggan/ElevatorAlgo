@@ -12,6 +12,8 @@ export class UIController {
   private algorithmsDropdown: HTMLSelectElement;
   private resultsPanel: ResultsPanel;
   private lastResultsUpdate: number | null = null;
+  private seedInput: HTMLInputElement;
+  private randomSeedButton: HTMLButtonElement;
 
   constructor() {
     this.laneSlider = document.getElementById('lanes') as HTMLInputElement;
@@ -21,9 +23,14 @@ export class UIController {
     this.elevatorCapacitySlider = document.getElementById('elevator-capacity') as HTMLInputElement;
     this.resetButton = document.getElementById('reset-simulation') as HTMLButtonElement;
     this.algorithmsDropdown = document.getElementById('algorithm-select') as HTMLSelectElement;
+    this.seedInput = document.getElementById('simulation-seed') as HTMLInputElement;
+    this.randomSeedButton = document.getElementById('random-seed') as HTMLButtonElement;
 
     // Initialize results panel
     this.resultsPanel = new ResultsPanel();
+
+    // Initialize with a random seed
+    this.seedInput.value = Date.now().toString();
 
     // Update value displays initially
     this.updateValueDisplays();
@@ -35,7 +42,8 @@ export class UIController {
       numberOfFloors: parseInt(this.floorSlider.value),
       peopleFlowRate: parseInt(this.peopleFlowSlider.value),
       elevatorSpeed: parseInt(this.elevatorSpeedSlider.value),
-      elevatorCapacity: parseInt(this.elevatorCapacitySlider.value)
+      elevatorCapacity: parseInt(this.elevatorCapacitySlider.value),
+      seed: parseInt(this.seedInput.value) || Date.now() // Add seed to settings
     };
   }
 
@@ -66,6 +74,22 @@ export class UIController {
 
     // Set up the algorithms dropdown
     this.populateAlgorithms(simulation);
+
+    // Add listener for the random seed button
+    this.randomSeedButton.addEventListener('click', () => {
+      const newSeed = Date.now();
+      this.seedInput.value = newSeed.toString();
+      document.getElementById('seed-value')!.textContent = newSeed.toString();
+      simulation.setSeed(newSeed);
+    });
+    
+    // Update seed when input changes
+    this.seedInput.addEventListener('change', () => {
+      const seed = parseInt(this.seedInput.value) || Date.now();
+      this.seedInput.value = seed.toString();
+      document.getElementById('seed-value')!.textContent = seed.toString();
+      simulation.setSeed(seed);
+    });
   }
 
   private updateValueDisplays(): void {
@@ -98,7 +122,7 @@ export class UIController {
     
     document.getElementById('total-people')!.textContent = stats.totalPeopleServed.toString();
     document.getElementById('people-who-gave-up')!.textContent = stats.peopleWhoGaveUp.toString();
-    console.log(stats.efficiencyScore);
+    // console.log(stats.efficiencyScore);
     document.getElementById('efficiency-score')!.textContent = stats.efficiencyScore.toFixed(0);
     
     // Update elevator status table

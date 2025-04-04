@@ -4,6 +4,7 @@ import { Elevator } from './Elevator';
 import { Person } from './Person';
 import { ElevatorSystem } from './ElevatorSystem';
 import { FloorStats } from '../algorithms/IElevatorAlgorithm'; // Add this import
+import { SeededRandom } from '../utils/SeededRandom';
 
 export interface Stats {
   averageWaitTime: number
@@ -47,11 +48,16 @@ export class Building {
   private cachedStatistics: Stats | null = null;
   private readonly EFFICIENCY_CALC_INTERVAL = 1000; // 1 second between calculations
 
-  constructor(p: p5, settings: SimulationSettings) {
+  private rng: SeededRandom;
+
+  constructor(p: p5, settings: SimulationSettings, rng?: SeededRandom) {
     this.p = p;
     this.floors = settings.numberOfFloors;
     this.lanes = settings.numberOfLanes;
     this.elevators = [];
+
+    // Use provided RNG or create a new one
+    this.rng = rng || new SeededRandom();
 
     // Ensure we're properly exposed on window for cross-component access
     (window as any).simulationBuilding = this;
@@ -250,15 +256,15 @@ export class Building {
     let targetFloor;
 
     if (floor === this.floors - 1) {
-      // For top floor, person can only go down
-      targetFloor = Math.floor(this.p.random(floor)); // Pick a random floor below
+      // For top floor, person can only go down - use seeded random
+      targetFloor = this.rng.randomInt(0, floor); // Pick a random floor below
     } else if (floor === 0) {
-      // For ground floor, person can only go up
-      targetFloor = Math.floor(this.p.random(1, this.floors)); // Pick a random floor above
+      // For ground floor, person can only go up - use seeded random
+      targetFloor = this.rng.randomInt(1, this.floors); // Pick a random floor above
     } else {
       // For other floors, allow going either way, but not to their own floor
       do {
-        targetFloor = Math.floor(this.p.random(this.floors));
+        targetFloor = this.rng.randomInt(0, this.floors);
       } while (targetFloor === floor);
     }
 

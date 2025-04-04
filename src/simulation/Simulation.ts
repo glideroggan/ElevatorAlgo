@@ -5,6 +5,7 @@ import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
 import { BaseElevatorAlgorithm } from '../algorithms/BaseElevatorAlgorithm';
 import { reg } from '../algorithms/scripts/register';
 import { Elevator, ElevatorState } from '../models/Elevator';
+import { SeededRandom } from '../utils/SeededRandom';
 
 export class Simulation {
   private p: p5;
@@ -13,11 +14,20 @@ export class Simulation {
   private frameCounter: number = 0;
   private peopleSpawnRate: number = 0;
   private currentAlgorithmId: string = 'default';
+  private rng: SeededRandom;
+  private simulationSeed: number;
   
   constructor(p: p5, settings: SimulationSettings) {
     this.p = p;
     this.settings = settings;
-    this.building = new Building(p, settings);
+    
+    // Initialize with current timestamp or provided seed
+    this.simulationSeed = settings.seed || Date.now();
+    this.rng = new SeededRandom(this.simulationSeed);
+    console.debug(`Simulation initialized with seed: ${this.simulationSeed}`);
+    
+    // Create building with the RNG
+    this.building = new Building(p, settings, this.rng);
     
     // Expose the building reference globally for components that need it
     (window as any).simulationBuilding = this.building;
@@ -49,18 +59,17 @@ export class Simulation {
     if (this.frameCounter >= this.peopleSpawnRate) {
       this.frameCounter = 0;
       
-      // Spawn a person at a random floor
-      // Add logic to sometimes test edge cases (ground floor and top floor)
+      // Use seeded random instead of Math.random
       let randomFloor;
-      const edgeCaseTest = Math.random() < 0.2; // 20% chance to test edge cases
+      const edgeCaseTest = this.rng.randomBool(0.2); // 20% chance for edge cases
       
       if (edgeCaseTest) {
-        // Pick either ground floor or top floor to test edge cases
-        randomFloor = Math.random() < 0.5 ? 0 : this.settings.numberOfFloors - 1;
+        // Use seeded random for edge cases
+        randomFloor = this.rng.randomBool(0.5) ? 0 : this.settings.numberOfFloors - 1;
         console.debug(`Testing edge case: person at ${randomFloor === 0 ? 'ground' : 'top'} floor`);
       } else {
-        // Normal random floor selection
-        randomFloor = Math.floor(this.p.random(this.settings.numberOfFloors));
+        // Use seeded random instead of p5.random
+        randomFloor = this.rng.randomInt(0, this.settings.numberOfFloors);
       }
       
       this.building.addPerson(randomFloor);
@@ -81,7 +90,15 @@ export class Simulation {
   
   public reset(settings: SimulationSettings): void {
     this.settings = settings;
-    this.building = new Building(this.p, settings);
+    
+    // Reset seed if specified or keep the same seed for reproducibility
+    this.simulationSeed = settings.seed || this.simulationSeed;
+    this.rng = new SeededRandom(this.simulationSeed);
+    console.debug(`Simulation reset with seed: ${this.simulationSeed}`);
+    
+    // Create new building with reset RNG
+    this.building = new Building(this.p, settings, this.rng);
+    
     this.frameCounter = 0;
     this.peopleSpawnRate = 60 / settings.peopleFlowRate;
     
@@ -130,11 +147,6 @@ export class Simulation {
     const elevators = this.building.elevators || [];
     elevators.forEach((elevator: Elevator, index: number) => {
       if (elevator) {
-        // Get elevator state properly
-        // const elevator_state = elevator.state; // Access _state directly
-        // const stateEnum = ["IDLE", "MOVING_UP", "MOVING_DOWN", "LOADING", "REPAIR"];
-        // const stateName = stateEnum[elevator_state] || 'UNKNOWN';
-        
         states.push({
           id: index + 1,
           state: elevator.state,
@@ -209,5 +221,16 @@ export class Simulation {
       name: algorithm.name,
       description: algorithm.description
     }));
+  }
+
+  // Add methods to access the seed
+  public getSeed(): number {
+    return this.simulationSeed;
+  }
+  
+  public setSeed(seed: number): void {
+    this.simulationSeed = seed;
+    this.rng.setSeed(seed);
+    console.debug(`Simulation seed set to: ${seed}`);
   }
 }

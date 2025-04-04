@@ -1,4 +1,5 @@
 import p5 from 'p5';
+import { SeededRandom } from '../utils/SeededRandom';
 
 export class Person {
   private p: p5;
@@ -15,20 +16,23 @@ export class Person {
   giveUpThreshold: number;  // Time before giving up and "taking the stairs"
   hasGivenUp: boolean = false;
 
-  constructor(p: p5, startFloor: number, destinationFloor: number) {
+  constructor(p: p5, startFloor: number, destinationFloor: number, rng?: SeededRandom) {
     this.p = p;
     this.startFloor = startFloor;
     this.destinationFloor = destinationFloor;
     this.waitStartTime = p.millis();
 
-    // Most people will give up after 30-90 seconds
-    this.giveUpThreshold = p.random(30000, 90000);  // 30-90 seconds
+    // Use provided RNG or fall back to Math.random
+    const random = rng || Math;
 
-    // Assign a random color to the person for visualization
+    // Most people will give up after 30-90 seconds - use seeded random
+    this.giveUpThreshold = 30000 + random.random() * 60000;
+
+    // Assign a random color to the person for visualization - use seeded random
     this.color = p.color(
-      p.random(100, 255),
-      p.random(100, 255),
-      p.random(100, 255)
+      100 + random.random() * 155,
+      100 + random.random() * 155,
+      100 + random.random() * 155
     );
   }
 

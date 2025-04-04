@@ -4,6 +4,8 @@ import { Simple1 } from "./simple2"
 import { Simple3 } from "./simple3"
 import { Simple4 } from "./simple4"
 import { Simple5 } from "./simple5"
+import { Simple6 } from "./simple6"
+import { Simple7 } from "./simple7"
 import { SimplePlayerAlgorithm } from "./SimplePlayerAlgorithm"
 
 export const reg = ():BaseElevatorAlgorithm[] => {
@@ -13,6 +15,8 @@ export const reg = ():BaseElevatorAlgorithm[] => {
         new Simple1,
         new Simple3,
         new Simple4,
-        new Simple5
+        new Simple5,
+        new Simple6,
+        new Simple7
     ]
 }
