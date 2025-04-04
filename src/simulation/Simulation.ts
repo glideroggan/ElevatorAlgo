@@ -91,6 +91,9 @@ export class Simulation {
   public reset(settings: SimulationSettings): void {
     this.settings = settings;
     
+    // Save current algorithm ID before resetting
+    const previousAlgoId = this.currentAlgorithmId;
+    
     // Reset seed if specified or keep the same seed for reproducibility
     this.simulationSeed = settings.seed || this.simulationSeed;
     this.rng = new SeededRandom(this.simulationSeed);
@@ -98,6 +101,9 @@ export class Simulation {
     
     // Create new building with reset RNG
     this.building = new Building(this.p, settings, this.rng);
+    
+    // Update the global reference
+    (window as any).simulationBuilding = this.building;
     
     this.frameCounter = 0;
     this.peopleSpawnRate = 60 / settings.peopleFlowRate;
@@ -110,13 +116,34 @@ export class Simulation {
 
     // Re-register algorithms with the new building's elevator system
     const algorithmManager = this.building.getElevatorSystem().getAlgorithmManager();
+    
+    // Register built-in algorithms first
     reg().forEach((algo:BaseElevatorAlgorithm) => {
       algorithmManager.registerAlgorithm(algo);
-    })
+    });
     
-    // Re-apply current algorithm selection
-    if (this.currentAlgorithmId) {
-      this.building.getElevatorSystem().setAlgorithm(this.currentAlgorithmId);
+    // If there was a custom algorithm in the previous building, re-register it
+    const prevBuildingAlgoManager = (window as any).prevAlgorithmManager;
+    if (prevBuildingAlgoManager && prevBuildingAlgoManager.getAlgorithmById('custom')) {
+      const customAlgo = prevBuildingAlgoManager.getAlgorithmById('custom');
+      algorithmManager.registerAlgorithm(customAlgo);
+    }
+    
+    // Store current algorithm manager for future resets
+    (window as any).prevAlgorithmManager = algorithmManager;
+    
+    // Debug: Check all registered algorithms
+    algorithmManager.debugAlgorithms();
+    
+    // Re-apply algorithm selection
+    if (previousAlgoId) {
+      const success = this.building.getElevatorSystem().setAlgorithm(previousAlgoId);
+      if (success) {
+        this.currentAlgorithmId = previousAlgoId;
+        console.debug(`Re-applied algorithm: ${previousAlgoId}`);
+      } else {
+        console.warn(`Failed to re-apply algorithm: ${previousAlgoId}`);
+      }
     }
   }
   
@@ -197,16 +224,23 @@ export class Simulation {
    * Change the algorithm used by the elevator system
    */
   public switchAlgorithm(algorithmId: string): boolean {
+    console.log(`Switching algorithm to: ${algorithmId}`);
     const success = this.building.getElevatorSystem().setAlgorithm(algorithmId);
     if (success) {
       this.currentAlgorithmId = algorithmId;
       console.debug(`Algorithm switched to: ${algorithmId}`);
+      
+      // Debug check if the algorithm was actually switched
+      const currentAlgoName = this.building.getElevatorSystem().getAlgorithmManager().getCurrentAlgorithm().name;
+      console.debug(`Current algorithm is now: ${currentAlgoName}`);
       
       // Reset the stat counters in Building to trigger a new stats collection cycle
       const buildingAny = this.building as any;
       if (buildingAny.lastStatsUpdateCount !== undefined) {
         buildingAny.lastStatsUpdateCount = 0;
       }
+    } else {
+      console.error(`Failed to switch to algorithm: ${algorithmId}`);
     }
     return success;
   }

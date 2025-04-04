@@ -270,4 +270,20 @@ export class UIController {
     const event = new Event('change');
     this.algorithmsDropdown.dispatchEvent(event);
   }
+
+  /**
+   * Select an algorithm in the dropdown
+   */
+  public selectAlgorithm(algorithmId: string): void {
+    if (this.algorithmsDropdown) {
+      this.algorithmsDropdown.value = algorithmId;
+      
+      // Trigger the change event to update description and other UI elements
+      const event = new Event('change');
+      this.algorithmsDropdown.dispatchEvent(event);
+      
+      // Update results panel highlighting
+      this.resultsPanel.setCurrentAlgorithm(algorithmId);
+    }
+  }
 }

@@ -1,40 +1,47 @@
 import * as build from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
-const watchMode = process.argv.includes('--watch');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Create build context
+const isProduction = process.env.NODE_ENV === 'production';
+const isWatch = process.argv.includes('--watch');
+
+// Ensure the dist directory exists
+if (!fs.existsSync(path.join(__dirname, 'dist'))) {
+  fs.mkdirSync(path.join(__dirname, 'dist'));
+}
+
+// Remove the Monaco worker copy plugin - we don't need it anymore
+
 const context = await build.context({
-  entryPoints: ['src/index.ts'],
+  entryPoints: [
+    'src/index.ts',
+    'src/algorithms/base-algorithm-export.ts'  // Add this new entry point
+  ],
   bundle: true,
-  outfile: 'dist/bundle.js',
-  sourcemap: true,
+  outdir: 'dist', // Change from outfile to outdir since we have multiple outputs
+  minify: isProduction,
+  sourcemap: !isProduction,
   platform: 'browser',
-  target: 'es2018',
-  minify: !watchMode,
-  format: 'esm',
-  logLevel: 'info',
-  loader: {
-    '.html': 'text',
-    '.svg': 'file',
-    '.png': 'file',
-    '.jpg': 'file',
+  target: ['es2020'],
+  loader: { 
+    '.ts': 'ts', 
+    '.js': 'js',
+    '.css': 'text',
+    '.html': 'text'
   },
+  external: ['@elevator-base'],
   plugins: [
     copy({
       assets: [
-        {
-          from: ['./src/index.html'],
-          to: ['./'],
-        },
-        {
-          from: ['./src/styles/**/*'],
-          to: ['./'],
-        },
-      ],
-      watch: true,
-    }),
-  ]
+        { from: ['src/index.html'], to: ['index.html'] },
+        { from: ['src/styles/*.css'], to: ['styles.css'] }
+      ]
+    })
+  ],
 });
 
 // Build once
@@ -42,7 +49,7 @@ const result = await context.rebuild();
 console.log('Build completed successfully!');
 
 // Watch for changes and start dev server if in watch mode
-if (watchMode) {
+if (isWatch) {
   // Start watching
   await context.watch();
   console.log('Watching for changes...');
