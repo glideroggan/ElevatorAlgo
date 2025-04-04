@@ -1,4 +1,4 @@
-import { Elevator, ElevatorState } from './Elevator';
+import { Elevator, ElevatorStatusState } from './Elevator';
 import { Person } from './Person';
 import { AlgorithmManager } from '../algorithms/AlgorithmManager';
 import { 
@@ -98,6 +98,7 @@ export class ElevatorSystem {
         return nextFloor;
       } else {
         console.warn(`Algorithm returned invalid floor: ${nextFloor}, using current floor instead`);
+        console.warn(building.totalFloors, nextFloor)
         return elevator.currentFloor;
       }
     } catch (error) {
@@ -116,11 +117,11 @@ export class ElevatorSystem {
       targetFloor: elevator.currentDestination >= 0 ? elevator.currentDestination : null,
       state: elevator.currentState,
       direction: elevator.currentDirection,
-      passengers: elevator.numberOfPeople,
+      passengers: elevator.people.length,
       capacity: elevator.capacity,
       floorsToVisit: Array.from(elevator.floorsToVisit),
       passengerDestinations: Array.from(elevator.passengerDestinations),
-      isInRepair: elevator.currentState === ElevatorState.REPAIR
+      isInRepair: elevator.currentState === 'REPAIR'
     };
   }
   
@@ -146,7 +147,7 @@ export class ElevatorSystem {
     let maxFloors = 0;
     this.elevators.forEach(elevator => {
       // Assuming the totalFloors property is accessible
-      const elevatorFloors = (elevator as any)._totalFloors || 0;
+      const elevatorFloors = elevator.totalFloors || 0;
       if (elevatorFloors > maxFloors) {
         maxFloors = elevatorFloors;
       }

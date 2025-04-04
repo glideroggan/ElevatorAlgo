@@ -1,4 +1,5 @@
 import * as build from 'esbuild';
+import { copy } from 'esbuild-plugin-copy';
 
 const watchMode = process.argv.includes('--watch');
 
@@ -19,6 +20,21 @@ const context = await build.context({
     '.png': 'file',
     '.jpg': 'file',
   },
+  plugins: [
+    copy({
+      assets: [
+        {
+          from: ['./src/index.html'],
+          to: ['./'],
+        },
+        {
+          from: ['./src/styles/**/*'],
+          to: ['./'],
+        },
+      ],
+      watch: true,
+    }),
+  ]
 });
 
 // Build once
@@ -52,7 +68,7 @@ if (watchMode) {
       });
     });
   };
-  
+
   await wait();
   await context.dispose();
 } else {

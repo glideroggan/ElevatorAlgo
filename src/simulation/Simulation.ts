@@ -4,6 +4,7 @@ import { SimulationSettings, SimulationStatistics } from '../models/SimulationSe
 import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
 import { BaseElevatorAlgorithm } from '../algorithms/BaseElevatorAlgorithm';
 import { reg } from '../algorithms/scripts/register';
+import { Elevator, ElevatorState } from '../models/Elevator';
 
 export class Simulation {
   private p: p5;
@@ -122,24 +123,24 @@ export class Simulation {
     return stats;
   }
 
-  public getElevatorStates(): { id: number, state: string, floor: number, passengers: number, capacity: number }[] {
-    const states: { id: number, state: string, floor: number, passengers: number, capacity: number }[] = [];
+  public getElevatorStates(): ElevatorState[] {
+    const states: ElevatorState[] = [];
     
     // Fix: Access elevator properties properly
-    const elevators = (this.building as any).elevators || [];
-    elevators.forEach((elevator: any, index: number) => {
+    const elevators = this.building.elevators || [];
+    elevators.forEach((elevator: Elevator, index: number) => {
       if (elevator) {
         // Get elevator state properly
-        const elevator_state = elevator._state; // Access _state directly
-        const stateEnum = ["IDLE", "MOVING_UP", "MOVING_DOWN", "LOADING", "REPAIR"];
-        const stateName = stateEnum[elevator_state] || 'UNKNOWN';
+        // const elevator_state = elevator.state; // Access _state directly
+        // const stateEnum = ["IDLE", "MOVING_UP", "MOVING_DOWN", "LOADING", "REPAIR"];
+        // const stateName = stateEnum[elevator_state] || 'UNKNOWN';
         
         states.push({
           id: index + 1,
-          state: stateName,
-          floor: elevator._currentFloor || 0,
-          passengers: elevator._people?.length || 0,
-          capacity: elevator._capacity || 0
+          state: elevator.state,
+          floor: elevator.currentFloor || 0,
+          passengers: elevator.people?.length || 0,
+          capacity: elevator.capacity || 0
         });
       }
     });

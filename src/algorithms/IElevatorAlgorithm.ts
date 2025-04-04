@@ -1,4 +1,4 @@
-import { ElevatorState } from '../models/Elevator';
+import { ElevatorStatusState } from '../models/Elevator';
 
 // Data types to expose clean data to algorithms without internal references
 export interface ElevatorData {
@@ -25,7 +25,7 @@ export interface ElevatorData {
    * - LOADING (3): Stopped at a floor for loading/unloading
    * - REPAIR (4): Out of service for maintenance
    */
-  state: ElevatorState;
+  state: ElevatorStatusState;
   
   /**
    * Current movement direction

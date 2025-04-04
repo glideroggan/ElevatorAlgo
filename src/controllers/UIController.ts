@@ -98,6 +98,7 @@ export class UIController {
     
     document.getElementById('total-people')!.textContent = stats.totalPeopleServed.toString();
     document.getElementById('people-who-gave-up')!.textContent = stats.peopleWhoGaveUp.toString();
+    console.log(stats.efficiencyScore);
     document.getElementById('efficiency-score')!.textContent = stats.efficiencyScore.toFixed(0);
     
     // Update elevator status table

@@ -1,4 +1,4 @@
-import { ElevatorState } from '../../models/Elevator';
+import { ElevatorStatusState } from '../../models/Elevator';
 import { BaseElevatorAlgorithm } from '../BaseElevatorAlgorithm';
 import { BuildingData, ElevatorData, PersonData } from '../IElevatorAlgorithm';
 
@@ -83,14 +83,14 @@ export class SimplePlayerAlgorithm extends BaseElevatorAlgorithm {
     
     // Direction factor - prefer elevators already going in the right direction
     let directionScore = 0;
-    if (elevator.state !== ElevatorState.IDLE) {
+    if (elevator.state !== 'IDLE') {
       // Check if pickup is in same direction
       const pickupInSameDirection = this.isFloorInSameDirection(elevator, pickupFloor);
       directionScore = pickupInSameDirection ? 30 : -20;
     }
     
     // Idle elevator bonus - to distribute work
-    const idleBonus = elevator.state === ElevatorState.IDLE ? 20 : 0;
+    const idleBonus = elevator.state === 'IDLE' ? 20 : 0;
     
     // Penalize elevators that already have many stops
     const busyPenalty = -elevator.floorsToVisit.length * 5;

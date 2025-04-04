@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elevator Algorithm Simulation</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- <style>
+    /* Add compact styling for controls */
+    .controls-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px; /* Reduced from larger value */
+    }
+    
+    .control-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px; /* Reduced margin */
+    }
+    
+    .control-label {
+      min-width: 120px; /* Fixed width for labels */
+      margin-right: 0;
+    }
+    
+    .control-input {
+      width: 80px; /* Standardized input width */
+    }
+    
+    button {
+      margin: 5px 3px; /* Reduced button margins */
+      padding: 5px 10px; /* Smaller padding */
+    }
+    
+    /* Make algorithm selector more compact */
+    #algorithm-selector {
+      margin: 5px 0;
+    }
+    
+    /* Remove excess whitespace around headings */
+    h2 {
+      margin: 10px 0 5px 0;
+    }
+  </style> -->
+</head>
+<body>
+  <div class="container">
+    <div class="simulation-section">
+      <div id="canvas-container"></div>
+      
+      <div class="controls-panel">
+        <div class="controls-container">
+          <h2>Simulation Controls</h2>
+          
+          <div class="control-group">
+            <label class="control-label" for="lanes">Elevator Lanes:</label>
+            <input class="control-input" type="range" id="lanes" min="1" max="10" value="2">
+            <span id="lanes-value">2</span>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" for="floors">Number of Floors:</label>
+            <input class="control-input" type="range" id="floors" min="3" max="20" value="6">
+            <span id="floors-value">6</span>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" for="people-flow">People Flow Rate:</label>
+            <input class="control-input" type="range" id="people-flow" min="1" max="20" value="1">
+            <span id="people-flow-value">1</span>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" for="elevator-speed">Elevator Speed:</label>
+            <input class="control-input" type="range" id="elevator-speed" min="1" max="10" value="3">
+            <span id="elevator-speed-value">3</span>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" for="elevator-capacity">Elevator Capacity:</label>
+            <input class="control-input" type="range" id="elevator-capacity" min="1" max="15" value="8">
+            <span id="elevator-capacity-value">8</span>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" for="algorithm-select">Elevator Algorithm:</label>
+            <select id="algorithm-select"></select>
+            <p id="algorithm-description" class="algorithm-description"></p>
+          </div>
+          
+          <div class="button-group" style="display: flex; gap: 5px;">
+            <button id="reset-simulation">Reset Simulation</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stats-section">
+      <div class="stats-panel">
+        <div class="stats">
+          <h2>Statistics</h2>
+          <div id="stats-container">
+            <div>Status: <span id="efficiency-status" class="warmup">Warmup</span></div>
+            <div>Average Wait Time: <span id="avg-wait-time">0</span>s</div>
+            <div>Average Service Time: <span id="avg-service-time">0</span>s</div>
+            <div>Total People Served: <span id="total-people">0</span></div>
+            <div>People Who Gave Up: <span id="people-who-gave-up">0</span></div>
+            <div>Efficiency Score: <span id="efficiency-score">0</span></div>
+          </div>
+        </div>
+        
+        <div class="legend">
+          <h2>State Legend</h2>
+          <div class="legend-items">
+            <div class="legend-item">
+              <span class="legend-color" id="legend-idle"></span>
+              <span class="legend-label">Idle</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-moving-up"></span>
+              <span class="legend-label">Moving Up</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-moving-down"></span>
+              <span class="legend-label">Moving Down</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-loading"></span>
+              <span class="legend-label">Loading/Unloading</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" id="legend-repair"></span>
+              <span class="legend-label">Under Repair</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="elevator-status">
+        <h2>Elevator Status</h2>
+        <div class="elevator-grid-container" id="elevator-status-grid">
+          <!-- Elevator status will be inserted here by JavaScript -->
+          <div class="elevator-grid-header">
+            <div class="id-cell">ID</div>
+            <div class="state-cell">State</div>
+            <div class="floor-cell">Floor</div>
+            <div class="capacity-cell">Capacity</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-section">
+      <div class="results-panel">
+        <h2>Results History <button id="clear-results" class="small-button">Clear</button></h2>
+        <div class="results-table-container">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Algorithm</th>
+                <th>Config</th>
+                <th>People</th>
+                <th>Avg Wait</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="results-table-body">
+              <!-- Results will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="bundle.js"></script>
+</body>
+</html>
