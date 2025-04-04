@@ -78,7 +78,6 @@ export class Elevator {
   ) {
     this.p = p;
     this.id = id;
-    // this.render.x = x;
     this.render = { x: x, y: p.height - 40 };
     this.capacity = capacity;
     this.speed = speed;
@@ -100,18 +99,9 @@ export class Elevator {
     this.logRouteUpdate();
   }
 
-  // Properly implemented getters
-  // get id(): number {
-  //   return this._id;
-  // }
-
   get isIdle(): boolean {
     return this.state === 'IDLE';
   }
-
-  // get currentFloor(): number {
-  //   return this.currentFloor;
-  // }
 
   get currentState(): ElevatorStatusState {
     return this.state;
@@ -133,7 +123,7 @@ export class Elevator {
 
   get passengerDestinations(): Set<number> {
     const destinations = new Set<number>();
-    this.people.forEach((person) => destinations.add(person.DestinationFloor));
+    this.people.forEach((person) => destinations.add(person.destinationFloor));
     return destinations;
   }
 
@@ -141,13 +131,8 @@ export class Elevator {
     this.elevatorSystem = system;
   }
 
-  // get Capacity(): number {
-  //   return this.capacity;
-  // }
-
   public update(): void {
     const currentTime = this.p.millis();
-    const previousState = this.state; // Track previous state
 
     if (this.state !== 'REPAIR') {
       this.checkForLogicalErrors(currentTime);
@@ -176,31 +161,11 @@ export class Elevator {
       this.positionCheckTimer = currentTime;
     }
 
-    // Track state changes and ensure stateStartTime is always updated
-    if (this.state !== previousState) {
-      const timeInPrevState = currentTime - this.stateStartTime;
-      this.lastStateChangeTime = currentTime;
-      this.stateStartTime = currentTime; // Reset state start time
-      this.stateChangeHistory.push({ state: this.state, time: currentTime });
-
-      // Reset position check variables on state change to avoid false positives
-      this.lastPositionY = this.render.y;
-      this.positionCheckTimer = currentTime;
-
-      console.debug(
-        `Elevator ${this.id + 1} changed from ${previousState} to ${this.state} after ${(timeInPrevState / 1000).toFixed(1)}s`
-      );
-
-      this.logRouteUpdate();
-    }
-
     switch (this.state) {
       case 'REPAIR':
         if (currentTime - this.repairStartTime >= this.stuckThresholds['REPAIR']) {
           console.debug(`Elevator ${this.id + 1} repair complete - returning to service`);
-          this.state = 'IDLE';
-          this.stateStartTime = currentTime;
-          this.stuckWarning = false;
+          this.changeState('IDLE', currentTime);
         }
         break;
 
@@ -210,9 +175,7 @@ export class Elevator {
             console.debug(
               `Elevator ${this.id + 1} starting to load at floor ${this.currentFloor} (already here)`
             );
-            this.floorsToVisit.delete(this.currentFloor);
-            this.state = 'LOADING';
-            this.stateStartTime = currentTime;
+            this.changeState('LOADING', currentTime);
           } else {
             this.targetFloor = this.getNextFloorFromSystem();
 
@@ -222,15 +185,12 @@ export class Elevator {
               console.debug(
                 `Elevator ${this.id + 1} already at target floor ${this.targetFloor}`
               );
-              this.state = 'LOADING';
-              this.stateStartTime = currentTime;
+              this.changeState('LOADING', currentTime);
               break
             }
 
-            this.state = this.targetFloor > this.currentFloor
-              ? 'MOVING_UP'
-              : 'MOVING_DOWN';
-            this.stateStartTime = currentTime;
+            this.changeState(
+              this.targetFloor > this.currentFloor ? 'MOVING_UP' : 'MOVING_DOWN',currentTime)
           }
         }
         break;
@@ -242,10 +202,8 @@ export class Elevator {
           if (this.render.y <= targetYUp) {
             this.render.y = targetYUp;
             this.currentFloor = this.targetFloor;
-            this.floorsToVisit.delete(this.targetFloor);
-            this.state = 'LOADING';
-            this.stateStartTime = currentTime;
-            this.unloadPeopleAtFloor(this.currentFloor);
+            // this.floorsToVisit.delete(this.targetFloor);
+            this.changeState('LOADING', currentTime);
           }
         }
         break;
@@ -257,10 +215,7 @@ export class Elevator {
           if (this.render.y >= targetYDown) {
             this.render.y = targetYDown;
             this.currentFloor = this.targetFloor;
-            this.floorsToVisit.delete(this.targetFloor);
-            this.state = 'LOADING';
-            this.stateStartTime = currentTime;
-            this.unloadPeopleAtFloor(this.currentFloor);
+            this.changeState('LOADING', currentTime);
           }
         }
         break;
@@ -269,8 +224,7 @@ export class Elevator {
         this.floorsToVisit.delete(this.currentFloor);
         this.unloadPeopleAtFloor(this.currentFloor);
         if (currentTime - this.stateStartTime >= this.loadingDuration) {
-          this.state = 'IDLE';
-          this.stateStartTime = currentTime;
+          this.changeState('IDLE', currentTime);
         }
         break;
     }
@@ -278,6 +232,11 @@ export class Elevator {
     this.unloadedPeople = this.unloadedPeople.filter(
       (item) => this.p.millis() - item.time < 2000
     );
+  }
+
+  private changeState(newState: ElevatorStatusState, currentTime: number): void {
+    this.state = newState;
+    this.stateStartTime = currentTime;
   }
 
 
@@ -530,7 +489,7 @@ export class Elevator {
       this.p.fill(80);
 
       const passengerDestinations = new Set<number>();
-      this.people.forEach((person) => passengerDestinations.add(person.DestinationFloor));
+      this.people.forEach((person) => passengerDestinations.add(person.destinationFloor));
 
       const pickupFloors = Array.from(this.floorsToVisit)
         .filter((floor) => !passengerDestinations.has(floor))
@@ -570,7 +529,7 @@ export class Elevator {
 
   private unloadPeopleAtFloor(floor: number): void {
     const peopleToUnload = this.people.filter(
-      (person) => person.DestinationFloor === floor
+      (person) => person.destinationFloor === floor
     );
 
     if (peopleToUnload.length > 0) {
@@ -585,7 +544,7 @@ export class Elevator {
         time: this.p.millis(),
       });
 
-      this.people = this.people.filter((person) => person.DestinationFloor !== floor);
+      this.people = this.people.filter((person) => person.destinationFloor !== floor);
     }
   }
 
@@ -597,7 +556,7 @@ export class Elevator {
     if (this.people.length < this.capacity) {
       person.startJourney(); // Mark the start of the journey
       this.people.push(person);
-      this.addFloorToVisit(person.DestinationFloor);
+      this.addFloorToVisit(person.destinationFloor);
       return true;
     }
     return false;
@@ -607,31 +566,31 @@ export class Elevator {
     this.floorsToVisit.add(floor);
   }
 
-  public getDistanceToFloor(floor: number): number {
-    if (this.state === 'IDLE') {
-      return Math.abs(this.currentFloor - floor);
-    } else if (this.state === 'MOVING_UP') {
-      if (floor >= this.currentFloor) {
-        return floor - this.currentFloor;
-      } else {
-        return (
-          this.targetFloor - this.currentFloor +
-          (this.targetFloor - floor)
-        );
-      }
-    } else if (this.state === 'MOVING_DOWN') {
-      if (floor <= this.currentFloor) {
-        return this.currentFloor - floor;
-      } else {
-        return (
-          this.currentFloor - this.targetFloor +
-          (floor - this.targetFloor)
-        );
-      }
-    }
+  // public getDistanceToFloor(floor: number): number {
+  //   if (this.state === 'IDLE') {
+  //     return Math.abs(this.currentFloor - floor);
+  //   } else if (this.state === 'MOVING_UP') {
+  //     if (floor >= this.currentFloor) {
+  //       return floor - this.currentFloor;
+  //     } else {
+  //       return (
+  //         this.targetFloor - this.currentFloor +
+  //         (this.targetFloor - floor)
+  //       );
+  //     }
+  //   } else if (this.state === 'MOVING_DOWN') {
+  //     if (floor <= this.currentFloor) {
+  //       return this.currentFloor - floor;
+  //     } else {
+  //       return (
+  //         this.currentFloor - this.targetFloor +
+  //         (floor - this.targetFloor)
+  //       );
+  //     }
+  //   }
 
-    return Math.abs(this.currentFloor - floor);
-  }
+  //   return Math.abs(this.currentFloor - floor);
+  // }
 
   private getNextFloorFromSystem(): number {
     if (this.elevatorSystem) {
@@ -655,19 +614,4 @@ export class Elevator {
     }
     return this.currentFloor
   }
-
-  // private findClosestFloorToVisit(): number {
-  //   let closestFloor = -1;
-  //   let shortestDistance = Number.MAX_VALUE;
-
-  //   this.floorsToVisit.forEach((floor) => {
-  //     const distance = Math.abs(this.currentFloor - floor);
-  //     if (distance < shortestDistance) {
-  //       shortestDistance = distance;
-  //       closestFloor = floor;
-  //     }
-  //   });
-
-  //   return closestFloor === -1 ? this.currentFloor : closestFloor;
-  // }
 }

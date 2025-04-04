@@ -35,7 +35,6 @@ export class Building {
   private warmupPeriod: number = 30; // seconds
   private warmupStartTime: number = 0;
   private peopleServedAfterWarmup: Person[] = [];
-  private peopleServedDuringWarmup: Person[] = [];
   private stairsUsedCount: number = 0; // Count people who gave up
 
   // Add tracking for stats updates
@@ -107,9 +106,9 @@ export class Building {
       }
 
       // Reassign people from elevators in repair
-      if (elevator.state === 'REPAIR') {
-        this.reassignPeopleFromBrokenElevator(elevatorIndex, currentFloor);
-      }
+      // if (elevator.state === 'REPAIR') {
+      //   this.reassignPeopleFromBrokenElevator(elevatorIndex, currentFloor);
+      // }
     });
 
     // Update waiting people on floors
@@ -253,8 +252,8 @@ export class Building {
 
     let longestWait = 0;
     for (const person of this.waitingPeople[floor]) {
-      if (person.WaitTime > longestWait) {
-        longestWait = person.WaitTime;
+      if (person.waitTime > longestWait) {
+        longestWait = person.waitTime;
       }
     }
     return longestWait;
@@ -343,8 +342,8 @@ export class Building {
 
       // Convert people to PersonData for the interface
       const waitingPeople = people.map(person => ({
-        startFloor: person.StartFloor,
-        destinationFloor: person.DestinationFloor,
+        startFloor: person.startFloor,
+        destinationFloor: person.destinationFloor,
         waitTime: person.waitTime
       }));
 
@@ -407,9 +406,9 @@ export class Building {
     );
 
     // Diagnostic: Log when people should be boarding
-    if (peopleForThisElevator.length > 0) {
-      console.debug(`Elevator ${elevatorIndex + 1} at floor ${floor} found ${peopleForThisElevator.length} people waiting`);
-    }
+    // if (peopleForThisElevator.length > 0) {
+    //   console.debug(`Elevator ${elevatorIndex + 1} at floor ${floor} found ${peopleForThisElevator.length} people waiting`);
+    // }
 
     // Keep track of people who will remain waiting
     const remainingPeople = [...this.waitingPeople[floor]];
@@ -419,21 +418,17 @@ export class Building {
     for (const person of peopleForThisElevator) {
       if (elevator.addPerson(person)) {
         // Person got on the elevator
-        if (this.warmupPhase) {
-          this.peopleServedDuringWarmup.push(person);
-        } else {
-          this.peopleServedAfterWarmup.push(person);
+        this.peopleServedAfterWarmup.push(person);
 
-          // Check if we've hit the stats update interval
-          if (this.peopleServedAfterWarmup.length % this.statsUpdateInterval === 0 &&
-            this.peopleServedAfterWarmup.length > this.lastStatsUpdateCount) {
-            this.lastStatsUpdateCount = this.peopleServedAfterWarmup.length;
+        // Check if we've hit the stats update interval
+        if (this.peopleServedAfterWarmup.length % this.statsUpdateInterval === 0 &&
+          this.peopleServedAfterWarmup.length > this.lastStatsUpdateCount) {
+          this.lastStatsUpdateCount = this.peopleServedAfterWarmup.length;
 
-            // Calculate current stats and notify listeners
-            if (this.onStatsUpdatedCallback) {
-              const currentStats = this.getStatistics();
-              this.onStatsUpdatedCallback(currentStats);
-            }
+          // Calculate current stats and notify listeners
+          if (this.onStatsUpdatedCallback) {
+            const currentStats = this.getStatistics();
+            this.onStatsUpdatedCallback(currentStats);
           }
         }
         this.servedPeople.push(person);
@@ -444,13 +439,13 @@ export class Building {
           boardedCount++;
         }
       } else {
-        console.debug(`Elevator ${elevatorIndex + 1} could not accept person going to floor ${person.DestinationFloor}`);
+        console.debug(`Elevator ${elevatorIndex + 1} could not accept person going to floor ${person.destinationFloor}`);
       }
     }
 
-    if (boardedCount > 0) {
-      console.debug(`${boardedCount} people boarded elevator ${elevatorIndex + 1}`);
-    }
+    // if (boardedCount > 0) {
+    //   console.debug(`${boardedCount} people boarded elevator ${elevatorIndex + 1}`);
+    // }
 
     // Update the waiting list for this floor
     this.waitingPeople[floor] = remainingPeople;
@@ -464,56 +459,56 @@ export class Building {
   /**
    * Find people waiting for a broken elevator and reassign them
    */
-  private reassignPeopleFromBrokenElevator(brokenElevatorIndex: number, floor: number): void {
-    const peopleToReassign = this.waitingPeople[floor].filter(
-      person => person.getAssignedElevator() === brokenElevatorIndex
-    );
+  // private reassignPeopleFromBrokenElevator(brokenElevatorIndex: number, floor: number): void {
+  //   const peopleToReassign = this.waitingPeople[floor].filter(
+  //     person => person.getAssignedElevator() === brokenElevatorIndex
+  //   );
 
-    if (peopleToReassign.length > 0) {
-      console.debug(`Reassigning ${peopleToReassign.length} people from broken elevator ${brokenElevatorIndex + 1}`);
+  //   if (peopleToReassign.length > 0) {
+  //     console.debug(`Reassigning ${peopleToReassign.length} people from broken elevator ${brokenElevatorIndex + 1}`);
 
-      for (const person of peopleToReassign) {
-        // Find a new elevator
-        const newElevator = this.findNewElevatorForPerson(brokenElevatorIndex, floor, person);
-        person.setAssignedElevator(newElevator);
+  //     for (const person of peopleToReassign) {
+  //       // Find a new elevator
+  //       const newElevator = this.findNewElevatorForPerson(brokenElevatorIndex, floor, person);
+  //       person.setAssignedElevator(newElevator);
 
-        // Update the new elevator's plan
-        this.elevators[newElevator].addFloorToVisit(floor);
-      }
-    }
-  }
+  //       // Update the new elevator's plan
+  //       this.elevators[newElevator].addFloorToVisit(floor);
+  //     }
+  //   }
+  // }
 
   /**
    * Find a new elevator for a person when their assigned elevator breaks
    */
-  private findNewElevatorForPerson(excludeElevatorIndex: number, floor: number, person: Person): number {
-    let bestElevator = -1;
+  // private findNewElevatorForPerson(excludeElevatorIndex: number, floor: number, person: Person): number {
+  //   let bestElevator = -1;
 
-    // First try to find any available elevator
-    for (let i = 0; i < this.elevators.length; i++) {
-      if (i !== excludeElevatorIndex && this.elevators[i].currentState !== 'REPAIR') {
-        if (bestElevator === -1) bestElevator = i;
-        break;
-      }
-    }
+  //   // First try to find any available elevator
+  //   for (let i = 0; i < this.elevators.length; i++) {
+  //     if (i !== excludeElevatorIndex && this.elevators[i].currentState !== 'REPAIR') {
+  //       if (bestElevator === -1) bestElevator = i;
+  //       break;
+  //     }
+  //   }
 
-    // If no elevator is available, just assign to the first one (they'll have to wait for repair)
-    if (bestElevator === -1) {
-      bestElevator = (excludeElevatorIndex + 1) % this.elevators.length;
-    }
+  //   // If no elevator is available, just assign to the first one (they'll have to wait for repair)
+  //   if (bestElevator === -1) {
+  //     bestElevator = (excludeElevatorIndex + 1) % this.elevators.length;
+  //   }
 
-    // Ideally use the elevator system to pick the best one
-    try {
-      const idealElevator = this.elevatorSystem.assignElevatorToPerson(person, floor);
-      if (idealElevator !== excludeElevatorIndex && this.elevators[idealElevator].currentState !== 'REPAIR') {
-        bestElevator = idealElevator;
-      }
-    } catch (e) {
-      console.error("Error reassigning elevator:", e);
-    }
+  //   // Ideally use the elevator system to pick the best one
+  //   try {
+  //     const idealElevator = this.elevatorSystem.assignElevatorToPerson(person, floor);
+  //     if (idealElevator !== excludeElevatorIndex && this.elevators[idealElevator].currentState !== 'REPAIR') {
+  //       bestElevator = idealElevator;
+  //     }
+  //   } catch (e) {
+  //     console.error("Error reassigning elevator:", e);
+  //   }
 
-    return bestElevator;
-  }
+  //   return bestElevator;
+  // }
 
   public getStatistics(): Stats {
     const currentTime = this.p.millis();
@@ -533,7 +528,7 @@ export class Building {
     let count = this.peopleServedAfterWarmup.length;
 
     this.peopleServedAfterWarmup.forEach(person => {
-      totalWaitTime += person.WaitTime;
+      totalWaitTime += person.waitTime;
       totalJourneyTime += person.journeyTime || 0; // Account for older data that might not have journeyTime
     });
 
@@ -617,7 +612,7 @@ export class Building {
         Math.max(0, this.warmupPeriod - (currentTime - this.warmupStartTime) / 1000) :
         0
     };
-    console.log(this.cachedStatistics)
+    // console.log(this.cachedStatistics)
 
     return this.cachedStatistics;
   }
@@ -685,21 +680,21 @@ export class Building {
     this.warmupPhase = true;
     this.warmupStartTime = this.p.millis();
     this.peopleServedAfterWarmup = [];
-    this.peopleServedDuringWarmup = [];
+    // this.peopleServedDuringWarmup = [];
     this.stairsUsedCount = 0;
 
     // Also reset the stats update counter
     this.lastStatsUpdateCount = 0;
   }
 
-  public callElevator(floor: number): void {
-    // This now just updates the button visual state
-    // without triggering additional elevator assignments
-    if (!this.floorButtonPressed[floor]) {
-      this.floorButtonPressed[floor] = true;
-      this.floorButtonPressTime[floor] = this.p.millis();
-    }
-  }
+  // public callElevator(floor: number): void {
+  //   // This now just updates the button visual state
+  //   // without triggering additional elevator assignments
+  //   if (!this.floorButtonPressed[floor]) {
+  //     this.floorButtonPressed[floor] = true;
+  //     this.floorButtonPressTime[floor] = this.p.millis();
+  //   }
+  // }
 
   /**
    * Get the elevator system

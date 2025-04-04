@@ -48,8 +48,8 @@ export class ElevatorSystem {
     
     // Convert person to PersonData
     const personData: PersonData = {
-      startFloor: person.StartFloor,
-      destinationFloor: person.DestinationFloor,
+      startFloor: person.startFloor,
+      destinationFloor: person.destinationFloor,
       waitTime: person.waitTime
     };
     
