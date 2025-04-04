@@ -12,8 +12,8 @@ export class AlgorithmManager {
   constructor() {
     // Register the default algorithm
     const algos = reg()
-    console.debug('algos', algos) 
-    const defaultAlgo = algos.find((algo) => algo.name === 'Simple3') || new DefaultElevatorAlgorithm();
+    
+    const defaultAlgo = algos[Math.floor(Math.random() * algos.length)]
     this.algorithms.set(defaultAlgo.name, defaultAlgo);
     this.currentAlgorithm = defaultAlgo;
   }

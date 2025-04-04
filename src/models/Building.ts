@@ -1,6 +1,6 @@
 import p5 from 'p5';
 import { SimulationSettings } from './SimulationSettings';
-import { Elevator, ElevatorStatusState } from './Elevator';
+import { Elevator } from './Elevator';
 import { Person } from './Person';
 import { ElevatorSystem } from './ElevatorSystem';
 import { FloorStats } from '../algorithms/IElevatorAlgorithm'; // Add this import
@@ -28,7 +28,7 @@ export class Building {
   private laneWidth: number;
   private floorButtonPressed: boolean[] = [];
   private floorButtonPressTime: number[] = [];
-  private debug: boolean = false; // Enable for detailed debugging
+  // private debug: boolean = false; // Enable for detailed debugging
 
   // Add these new properties for better efficiency scoring
   private warmupPhase: boolean = true;
@@ -105,10 +105,6 @@ export class Building {
         this.loadPeopleToElevator(elevatorIndex, currentFloor);
       }
 
-      // Reassign people from elevators in repair
-      // if (elevator.state === 'REPAIR') {
-      //   this.reassignPeopleFromBrokenElevator(elevatorIndex, currentFloor);
-      // }
     });
 
     // Update waiting people on floors
@@ -136,16 +132,6 @@ export class Building {
       if (this.waitingPeople[floor].length === 0) {
         this.floorButtonPressed[floor] = false;
       }
-    }
-
-    // Print current elevator states for debugging
-    if (this.debug) {
-      this.elevators.forEach((elevator, i) => {
-        const state = elevator.state;
-        const floor = elevator.currentFloor
-        const floorsToVisit = Array.from(elevator.floorsToVisit).join(',');
-        console.debug(`Elevator ${i + 1}: Floor ${floor}, State: ${state}, To visit: [${floorsToVisit}]`);
-      });
     }
   }
 
@@ -443,10 +429,6 @@ export class Building {
       }
     }
 
-    // if (boardedCount > 0) {
-    //   console.debug(`${boardedCount} people boarded elevator ${elevatorIndex + 1}`);
-    // }
-
     // Update the waiting list for this floor
     this.waitingPeople[floor] = remainingPeople;
 
@@ -455,60 +437,6 @@ export class Building {
       this.floorButtonPressed[floor] = false;
     }
   }
-
-  /**
-   * Find people waiting for a broken elevator and reassign them
-   */
-  // private reassignPeopleFromBrokenElevator(brokenElevatorIndex: number, floor: number): void {
-  //   const peopleToReassign = this.waitingPeople[floor].filter(
-  //     person => person.getAssignedElevator() === brokenElevatorIndex
-  //   );
-
-  //   if (peopleToReassign.length > 0) {
-  //     console.debug(`Reassigning ${peopleToReassign.length} people from broken elevator ${brokenElevatorIndex + 1}`);
-
-  //     for (const person of peopleToReassign) {
-  //       // Find a new elevator
-  //       const newElevator = this.findNewElevatorForPerson(brokenElevatorIndex, floor, person);
-  //       person.setAssignedElevator(newElevator);
-
-  //       // Update the new elevator's plan
-  //       this.elevators[newElevator].addFloorToVisit(floor);
-  //     }
-  //   }
-  // }
-
-  /**
-   * Find a new elevator for a person when their assigned elevator breaks
-   */
-  // private findNewElevatorForPerson(excludeElevatorIndex: number, floor: number, person: Person): number {
-  //   let bestElevator = -1;
-
-  //   // First try to find any available elevator
-  //   for (let i = 0; i < this.elevators.length; i++) {
-  //     if (i !== excludeElevatorIndex && this.elevators[i].currentState !== 'REPAIR') {
-  //       if (bestElevator === -1) bestElevator = i;
-  //       break;
-  //     }
-  //   }
-
-  //   // If no elevator is available, just assign to the first one (they'll have to wait for repair)
-  //   if (bestElevator === -1) {
-  //     bestElevator = (excludeElevatorIndex + 1) % this.elevators.length;
-  //   }
-
-  //   // Ideally use the elevator system to pick the best one
-  //   try {
-  //     const idealElevator = this.elevatorSystem.assignElevatorToPerson(person, floor);
-  //     if (idealElevator !== excludeElevatorIndex && this.elevators[idealElevator].currentState !== 'REPAIR') {
-  //       bestElevator = idealElevator;
-  //     }
-  //   } catch (e) {
-  //     console.error("Error reassigning elevator:", e);
-  //   }
-
-  //   return bestElevator;
-  // }
 
   public getStatistics(): Stats {
     const currentTime = this.p.millis();
@@ -686,15 +614,6 @@ export class Building {
     // Also reset the stats update counter
     this.lastStatsUpdateCount = 0;
   }
-
-  // public callElevator(floor: number): void {
-  //   // This now just updates the button visual state
-  //   // without triggering additional elevator assignments
-  //   if (!this.floorButtonPressed[floor]) {
-  //     this.floorButtonPressed[floor] = true;
-  //     this.floorButtonPressTime[floor] = this.p.millis();
-  //   }
-  // }
 
   /**
    * Get the elevator system
