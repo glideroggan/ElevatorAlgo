@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "node esbuild.config.js",
+    "build": "tsc --emitDeclarationOnly && node esbuild.config.js",
     "dev": "node esbuild.config.js --watch",
     "watch": "tsc --emitDeclarationOnly -w",
-    "start": "yarn build && serve dist"
+    "start": "yarn build"
   },
   "dependencies": {
     "p5": "^1.7.0"

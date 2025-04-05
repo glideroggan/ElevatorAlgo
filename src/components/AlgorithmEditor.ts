@@ -109,7 +109,13 @@ export class AlgorithmEditor {
           allowSyntheticDefaultImports: true,
           esModuleInterop: true,
           noImplicitAny: true,
-          strict: true
+          strict: true,
+          moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+          baseUrl: ".",
+          paths: {
+            "@elevator-base": ["algorithms/BaseElevatorAlgorithm"],
+            "@elevator-interfaces": ["algorithms/IElevatorAlgorithm"]
+          }
         });
         
         // Add declarations directly to Monaco's TypeScript service
@@ -146,10 +152,10 @@ export class AlgorithmEditor {
         console.log("Type definitions added successfully.");
       } else {
         console.error("Failed to fetch type definitions");
-      }
+              }
     } catch (error) {
       console.error("Error loading type definitions:", error);
-    }
+      }
   }
 
   private createControls(): void {

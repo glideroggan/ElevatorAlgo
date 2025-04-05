@@ -1,0 +1,14 @@
+services:
+  elevator-app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: elevator-algorithm
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    # Uncomment the following lines if you want to mount the source code for development
+    # volumes:
+    #   - ./src:/app/src
+    #   - ./dist:/app/dist
+

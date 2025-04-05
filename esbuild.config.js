@@ -14,7 +14,10 @@ if (!fs.existsSync(path.join(__dirname, 'dist'))) {
   fs.mkdirSync(path.join(__dirname, 'dist'));
 }
 
-// Remove the Monaco worker copy plugin - we don't need it anymore
+// Ensure the algorithms directory exists in dist
+if (!fs.existsSync(path.join(__dirname, 'dist', 'algorithms'))) {
+  fs.mkdirSync(path.join(__dirname, 'dist', 'algorithms'), { recursive: true });
+}
 
 const context = await build.context({
   entryPoints: [
@@ -24,6 +27,7 @@ const context = await build.context({
     'src/algorithms/IElevatorAlgorithm.ts',
   ],
   bundle: true,
+  treeShaking: true,
   outdir: 'dist', // Change from outfile to outdir since we have multiple outputs
   minify: isProduction,
   sourcemap: !isProduction,
@@ -42,7 +46,10 @@ const context = await build.context({
       assets: [
         { from: ['src/index.html'], to: ['index.html'] },
         { from: ['src/styles/*.css'], to: ['styles.css'] },
-        { from: ['src/algorithms/scripts/example.ts'], to: ['example.ts'] }
+        { from: ['src/algorithms/scripts/example.ts'], to: ['example.ts'] },
+        // Add TypeScript definition files explicitly
+        { from: ['src/algorithms/BaseElevatorAlgorithm.ts'], to: ['algorithms/BaseElevatorAlgorithm.d.ts'] },
+        { from: ['src/algorithms/IElevatorAlgorithm.ts'], to: ['algorithms/IElevatorAlgorithm.d.ts'] }
       ]
     })
   ],
@@ -50,7 +57,7 @@ const context = await build.context({
 
 // Build once
 const result = await context.rebuild();
-console.log('Build completed successfully!');
+console.log('Build completed successfully!', isProduction ? 'Production mode' : 'Development mode');
 
 // Watch for changes and start dev server if in watch mode
 if (isWatch) {
