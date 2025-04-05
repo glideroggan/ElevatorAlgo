@@ -14,6 +14,9 @@ export class UIController {
   private lastResultsUpdate: number | null = null;
   private seedInput: HTMLInputElement;
   private randomSeedButton: HTMLButtonElement;
+  private playPauseButton: HTMLButtonElement;
+  private stepButton: HTMLButtonElement;
+  private statusText: HTMLElement;
 
   constructor() {
     this.laneSlider = document.getElementById('lanes') as HTMLInputElement;
@@ -25,6 +28,9 @@ export class UIController {
     this.algorithmsDropdown = document.getElementById('algorithm-select') as HTMLSelectElement;
     this.seedInput = document.getElementById('simulation-seed') as HTMLInputElement;
     this.randomSeedButton = document.getElementById('random-seed') as HTMLButtonElement;
+    this.playPauseButton = document.getElementById('play-pause-button') as HTMLButtonElement;
+    this.stepButton = document.getElementById('step-button') as HTMLButtonElement;
+    this.statusText = document.getElementById('simulation-status-text') as HTMLElement;
 
     // Initialize results panel
     this.resultsPanel = new ResultsPanel();
@@ -90,6 +96,35 @@ export class UIController {
       document.getElementById('seed-value')!.textContent = seed.toString();
       simulation.setSeed(seed);
     });
+
+    // Set up play/pause button
+    this.playPauseButton.addEventListener('click', () => {
+      const isPaused = simulation.isPausedState();
+      
+      if (isPaused) {
+        simulation.play();
+        this.updatePlayPauseButton(false);
+      } else {
+        simulation.pause();
+        this.updatePlayPauseButton(true);
+      }
+    });
+    
+    // Set up step button (advance one frame while paused)
+    this.stepButton.addEventListener('click', () => {
+      if (simulation.isPausedState()) {
+        // Temporarily unpause, update once, then pause again
+        simulation.play();
+        simulation.update();
+        simulation.pause();
+        
+        // Since we're still paused, make sure the UI shows paused state
+        this.updatePlayPauseButton(true);
+      }
+    });
+    
+    // Initialize button state
+    this.updatePlayPauseButton(simulation.isPausedState());
   }
 
   private updateValueDisplays(): void {
@@ -284,6 +319,27 @@ export class UIController {
       
       // Update results panel highlighting
       this.resultsPanel.setCurrentAlgorithm(algorithmId);
+    }
+  }
+
+  private updatePlayPauseButton(isPaused: boolean): void {
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    
+    if (isPaused) {
+      // Show play icon
+      if (playIcon) playIcon.style.display = 'inline';
+      if (pauseIcon) pauseIcon.style.display = 'none';
+      this.playPauseButton.classList.remove('pause-button');
+      this.playPauseButton.classList.add('play-button');
+      this.statusText.textContent = 'Paused';
+    } else {
+      // Show pause icon
+      if (playIcon) playIcon.style.display = 'none';
+      if (pauseIcon) pauseIcon.style.display = 'inline';
+      this.playPauseButton.classList.remove('play-button');
+      this.playPauseButton.classList.add('pause-button');
+      this.statusText.textContent = 'Running';
     }
   }
 }

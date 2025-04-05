@@ -19,7 +19,9 @@ if (!fs.existsSync(path.join(__dirname, 'dist'))) {
 const context = await build.context({
   entryPoints: [
     'src/index.ts',
-    'src/algorithms/base-algorithm-export.ts'  // Add this new entry point
+    'src/algorithms/IElevatorAlgorithm.ts',
+    'src/algorithms/scripts/example.ts',
+    'src/algorithms/BaseElevatorAlgorithm.ts'  
   ],
   bundle: true,
   outdir: 'dist', // Change from outfile to outdir since we have multiple outputs
@@ -38,7 +40,8 @@ const context = await build.context({
     copy({
       assets: [
         { from: ['src/index.html'], to: ['index.html'] },
-        { from: ['src/styles/*.css'], to: ['styles.css'] }
+        { from: ['src/styles/*.css'], to: ['styles.css'] },
+        { from: ['src/algorithms/scripts/example.ts'], to: ['example.ts'] }
       ]
     })
   ],
@@ -56,7 +59,7 @@ if (isWatch) {
 
   // Start dev server
   const serveResults = await context.serve({
-    port: 3000,
+    port: 3001,
     servedir: 'dist',
     onRequest: args => {
       console.log(`${args.method} [${args.path}] ${args.status} (${args.timeInMS}ms)`);

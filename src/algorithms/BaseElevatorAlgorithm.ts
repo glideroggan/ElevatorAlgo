@@ -2,10 +2,7 @@ import {
   IElevatorAlgorithm, 
   ElevatorData, 
   PersonData, 
-  BuildingData,
-  FloorStats
-} from './IElevatorAlgorithm';
-import { ElevatorStatusState } from '../models/Elevator';
+  BuildingData} from './IElevatorAlgorithm';
 
 /**
  * Base class for elevator algorithms that provides helpful utility methods
@@ -117,3 +114,5 @@ export abstract class BaseElevatorAlgorithm implements IElevatorAlgorithm {
     }).filter(stat => stat.waitingCount > 0 || stat.isInVisitList);
   }
 }
+
+export default BaseElevatorAlgorithm;

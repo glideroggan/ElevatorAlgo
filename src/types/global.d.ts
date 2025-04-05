@@ -12,16 +12,16 @@ declare global {
     prevAlgorithmManager: AlgorithmManager | undefined;
     
     // For evaluating custom algorithms
-    _evaluatedAlgorithm: new () => IElevatorAlgorithm;
+    _evaluatedAlgorithm?: new () => IElevatorAlgorithm;
     
     // Monaco editor
     monaco: any;
     
-    // TypeScript compiler
+    // TypeScript compiler from CDN
     ts?: {
-      transpile: (code: string, options: any) => string;
-      ScriptTarget: { ES2015: any };
-      ModuleKind: { ESNext: any };
+      transpile: (code: string, options?: any) => string;
+      ScriptTarget: { ES2015: any, ESNext: any };
+      ModuleKind: { Script: any, CommonJS: any };
     };
   }
 }

@@ -16,6 +16,7 @@ export class Simulation {
   private currentAlgorithmId: string = 'default';
   private rng: SeededRandom;
   private simulationSeed: number;
+  private isPaused: boolean = true; // Start in paused state
   
   constructor(p: p5, settings: SimulationSettings) {
     this.p = p;
@@ -52,6 +53,9 @@ export class Simulation {
   }
   
   public update(): void {
+    // Skip update if paused
+    if (this.isPaused) return;
+    
     this.building.update();
     
     // Spawn new person based on flow rate
@@ -266,5 +270,25 @@ export class Simulation {
     this.simulationSeed = seed;
     this.rng.setSeed(seed);
     console.debug(`Simulation seed set to: ${seed}`);
+  }
+
+  // Add pause/play methods
+  public pause(): void {
+    this.isPaused = true;
+    console.debug('Simulation paused');
+  }
+  
+  public play(): void {
+    this.isPaused = false;
+    console.debug('Simulation resumed');
+  }
+  
+  public togglePause(): void {
+    this.isPaused = !this.isPaused;
+    console.debug(`Simulation ${this.isPaused ? 'paused' : 'resumed'}`);
+  }
+  
+  public isPausedState(): boolean {
+    return this.isPaused;
   }
 }

@@ -7,11 +7,12 @@
     "strict": true,
     "noImplicitAny": true,
     "sourceMap": true,
+    "declaration": true,
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"],
-      "@*": ["src/*"],
+      "@elevator-base": ["src/algorithms/BaseElevatorAlgorithm.ts"],
     }
   },
   "include": ["src/**/*"],

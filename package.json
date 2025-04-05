@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node esbuild.config.js",
     "dev": "node esbuild.config.js --watch",
-    "watch": "tsc --noEmit -w",
+    "watch": "tsc --emitDeclarationOnly -w",
     "start": "yarn build && serve dist"
   },
   "dependencies": {
