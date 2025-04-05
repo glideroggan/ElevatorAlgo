@@ -546,7 +546,7 @@ export class Building {
         Math.max(0, this.warmupPeriod - (currentTime - this.warmupStartTime) / 1000) :
         0
     };
-    // console.log(this.cachedStatistics)
+    // console.debug(this.cachedStatistics)
 
     return this.cachedStatistics;
   }

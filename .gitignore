@@ -1,5 +1,7 @@
 **/node_modules/**
 dist/**/*.js
 dist/**/*.js.map
+dist/**/*.d.ts
+dist/**/*.ts
 dist/index.html
 dist/styles.css

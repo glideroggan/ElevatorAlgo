@@ -1,7 +1,7 @@
 import { BaseElevatorAlgorithm } from "@elevator-base";
 import { PersonData, BuildingData, ElevatorData } from "../IElevatorAlgorithm";
 
-export class Example extends BaseElevatorAlgorithm {
+class Example extends BaseElevatorAlgorithm {
     name = "example";
     description= "";
     assignElevatorToPerson(person: PersonData, startFloor: number, building: BuildingData): number {

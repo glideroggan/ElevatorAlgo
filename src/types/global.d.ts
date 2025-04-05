@@ -20,8 +20,8 @@ declare global {
     // TypeScript compiler from CDN
     ts?: {
       transpile: (code: string, options?: any) => string;
-      ScriptTarget: { ES2015: any, ESNext: any };
-      ModuleKind: { Script: any, CommonJS: any };
+      ScriptTarget: { ES2020: any, ESNext: any };
+      ModuleKind: { ESNext: any, CommonJS: any };
     };
   }
 }

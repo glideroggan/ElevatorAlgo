@@ -7,17 +7,11 @@ import { reg } from './scripts/register';
 export class AlgorithmManager {
   // Change from Map to array for more consistent handling
   private algorithms: Array<{ id: string, algorithm: IElevatorAlgorithm }> = [];
-  private currentAlgorithm: IElevatorAlgorithm;
+  private currentAlgorithm?: IElevatorAlgorithm;
   private currentAlgorithmId: string = '';
   
   constructor() {
-    // Register the default algorithm
-    const algos = reg();
-    
-    const defaultAlgo = algos[Math.floor(Math.random() * algos.length)];
-    this.registerAlgorithm(defaultAlgo);
-    this.currentAlgorithm = defaultAlgo;
-    this.currentAlgorithmId = defaultAlgo.name;
+    // Empty constructor - algorithms will be registered by Simulation
   }
   
   /**
@@ -32,6 +26,13 @@ export class AlgorithmManager {
     
     // Add the new algorithm
     this.algorithms.push({ id, algorithm });
+    
+    // If this is the first algorithm, set it as current
+    if (!this.currentAlgorithm) {
+      this.currentAlgorithm = algorithm;
+      this.currentAlgorithmId = id;
+      console.debug(`Initial algorithm set to: ${algorithm.name} with ID: ${id}`);
+    }
   }
   
   /**
@@ -58,6 +59,9 @@ export class AlgorithmManager {
    * Get the currently active algorithm
    */
   public getCurrentAlgorithm(): IElevatorAlgorithm {
+    if (!this.currentAlgorithm) {
+      throw new Error("No algorithm is currently set. Please set an algorithm first.");
+    }
     return this.currentAlgorithm;
   }
 
@@ -89,6 +93,6 @@ export class AlgorithmManager {
   public debugAlgorithms(): void {
     console.debug("Registered algorithms:", 
       this.algorithms.map(a => `${a.id} (${a.algorithm.name})`).join(", "));
-    console.debug(`Current algorithm: ${this.currentAlgorithmId} (${this.currentAlgorithm.name})`);
+    console.debug(`Current algorithm: ${this.currentAlgorithmId} (${this.currentAlgorithm!.name})`);
   }
 }

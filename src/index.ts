@@ -38,6 +38,12 @@ const sketch = (p: p5) => {
     
     // Set up event listeners for UI controls
     uiController.setupEventListeners(simulation);
+    
+    // Wait for simulation to be ready before populating the algorithms dropdown
+    simulation.onReady(() => {
+      console.debug("Simulation is ready, populating algorithms in UI controller...");
+      uiController.populateAlgorithms(simulation);
+    });
   };
 
   p.draw = () => {
@@ -77,6 +83,7 @@ window.addEventListener('load', () => {
 
   // Handle saving the algorithm
   editor.onSave(async (code) => {
+    console.debug("Saving algorithm code:", code);
     const evaluator = CustomAlgorithmEvaluator.getInstance();
     try {
       const success = await evaluator.evaluateCode(code);
@@ -95,6 +102,9 @@ window.addEventListener('load', () => {
           
           // Register the custom algorithm with fixed ID
           algorithmManager.registerAlgorithm(customAlgorithm);
+          
+          // Save the algorithm code to localStorage for persistence
+          localStorage.setItem('elevatorAlgorithmCode', code);
           
           // Debug: Log all registered algorithms
           algorithmManager.debugAlgorithms();

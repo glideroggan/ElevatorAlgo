@@ -1,85 +1,8 @@
-// We no longer need to import Monaco - it's provided by CDN
-import { IElevatorAlgorithm } from '../algorithms/IElevatorAlgorithm';
-import { BaseElevatorAlgorithm } from '../algorithms/BaseElevatorAlgorithm';
-
 export class AlgorithmEditor {
   private editor: any = null;
   private container: HTMLElement;
   private saveCallback: ((code: string) => void) | null = null;
   
-  // Template code for a new algorithm - completely fixed and cleaned up
-//   private readonly TEMPLATE_CODE = `// Your elevator algorithm
-// // Note: These imports are for type checking in the editor only.
-// // They will be handled differently at runtime.
-// import { BaseElevatorAlgorithm } from "../BaseElevatorAlgorithm";
-// import { PersonData, BuildingData, ElevatorData } from "../IElevatorAlgorithm";
-
-// /**
-//  * Custom elevator algorithm
-//  * Implement your logic in the methods below
-//  */
-// export class CustomAlgorithm extends BaseElevatorAlgorithm {
-//     // Define properties in constructor to avoid TypeScript class field issues
-//     constructor() {
-//         super();
-//         this.name = "My Custom Algorithm";
-//         this.description = "A custom algorithm created in the editor";
-//     }
-
-//     /**
-//      * Decide which elevator to assign to a person waiting on a floor
-//      * @param person The person requesting an elevator
-//      * @param startFloor The floor where the person is waiting
-//      * @param building Current state of the building and elevators
-//      * @returns Index of the elevator to assign (0 to number of elevators - 1)
-//      */
-//     assignElevatorToPerson(person, startFloor, building) {
-//         // Example: Assign to least busy elevator
-//         let leastBusyIndex = 0;
-//         let leastBusyLoad = Infinity;
-        
-//         building.elevators.forEach((elevator, index) => {
-//             if (elevator.passengers < leastBusyLoad && !elevator.isInRepair) {
-//                 leastBusyLoad = elevator.passengers;
-//                 leastBusyIndex = index;
-//             }
-//         });
-        
-//         return leastBusyIndex;
-//     }
-    
-//     /**
-//      * Decide which floor an elevator should go to next
-//      * @param elevator The elevator that needs to decide where to go
-//      * @param building Current state of the building and elevators
-//      * @returns The floor number the elevator should visit next
-//      */
-//     decideNextFloor(elevator, building) {
-//         // If no floors to visit, stay where we are
-//         if (elevator.floorsToVisit.length === 0) {
-//             return elevator.currentFloor;
-//         }
-        
-//         // Get elevator-specific floor stats using utility method
-//         const elevatorFloorStats = this.getElevatorFloorStats(elevator, building);
-        
-//         // Find any urgent floors (people waiting too long)
-//         const urgentFloors = elevatorFloorStats
-//             .filter(stat => stat.waitingCount > 0 && stat.maxWaitTime > 20)
-//             .sort((a, b) => b.maxWaitTime - a.maxWaitTime);
-            
-//         if (urgentFloors.length > 0) {
-//             return urgentFloors[0].floor;
-//         }
-        
-//         // Otherwise go to closest floor to visit
-//         return this.findClosestFloor(
-//             elevator.currentFloor, 
-//             elevator.floorsToVisit.filter(f => f !== elevator.currentFloor)
-//         );
-//     }
-// }`;
-
   constructor(containerId: string) {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -92,7 +15,7 @@ export class AlgorithmEditor {
       this.setupEditor();
     } else {
       // If Monaco isn't loaded yet, wait for it (it should be loaded by the time this runs)
-      console.log("Waiting for Monaco to load...");
+      console.debug("Waiting for Monaco to load...");
       window.onload = () => {
         this.setupEditor();
       };
@@ -176,70 +99,8 @@ export class AlgorithmEditor {
     if (content.ok) {
         const text = await content.text();
         monaco.languages.typescript.typescriptDefaults.addExtraLib(text)
-        console.log("Type definitions added successfully.");
+        console.debug("Type definitions added successfully.");
     }
-
-    // Add type definitions for our interfaces
-    // monaco.languages.typescript.typescriptDefaults.addExtraLib(`
-    //   declare module "../IElevatorAlgorithm" {
-    //     export interface PersonData {
-    //       startFloor: number;
-    //       destinationFloor: number;
-    //       waitTime: number;
-    //     }
-        
-    //     export interface ElevatorData {
-    //       id: number;
-    //       currentFloor: number;
-    //       targetFloor: number | null;
-    //       state: string;
-    //       direction: number;
-    //       passengers: number;
-    //       capacity: number;
-    //       floorsToVisit: number[];
-    //       passengerDestinations: number[];
-    //       isInRepair: boolean;
-    //     }
-        
-    //     export interface FloorStats {
-    //       floor: number;
-    //       waitingCount: number;
-    //       totalMaxWaitTime: number;
-    //       totalAvgWaitTime: number;
-    //       perElevatorStats?: any[];
-    //     }
-        
-    //     export interface BuildingData {
-    //       totalFloors: number;
-    //       totalElevators: number;
-    //       elevators: ElevatorData[];
-    //       floorStats: FloorStats[];
-    //     }
-    //   }
-      
-    //   declare module "../BaseElevatorAlgorithm" {
-    //     import { PersonData, BuildingData, ElevatorData, FloorStats } from "../IElevatorAlgorithm";
-        
-    //     export abstract class BaseElevatorAlgorithm {
-    //       abstract readonly name: string;
-    //       abstract readonly description: string;
-          
-    //       abstract assignElevatorToPerson(person: PersonData, startFloor: number, building: BuildingData): number;
-    //       abstract decideNextFloor(elevator: ElevatorData, building: BuildingData): number;
-          
-    //       protected findClosestFloor(currentFloor: number, floors: number[]): number;
-    //       protected calculateDistanceToFloor(elevator: ElevatorData, floor: number): number;
-    //       protected isFloorInSameDirection(elevator: ElevatorData, floor: number): boolean;
-    //       protected getElevatorFloorStats(elevator: ElevatorData, building: BuildingData): {
-    //         floor: number;
-    //         waitingCount: number;
-    //         maxWaitTime: number;
-    //         avgWaitTime: number;
-    //         isInVisitList: boolean;
-    //       }[];
-    //     }
-    //   }
-    // `, 'ts:filename/elevator-types.d.ts');
   }
 
   private createControls(): void {

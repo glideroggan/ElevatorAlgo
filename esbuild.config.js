@@ -19,7 +19,6 @@ if (!fs.existsSync(path.join(__dirname, 'dist'))) {
 const context = await build.context({
   entryPoints: [
     'src/index.ts',
-    'src/algorithms/IElevatorAlgorithm.ts',
     'src/algorithms/scripts/example.ts',
     'src/algorithms/BaseElevatorAlgorithm.ts'  
   ],
@@ -29,6 +28,7 @@ const context = await build.context({
   sourcemap: !isProduction,
   platform: 'browser',
   target: ['es2020'],
+  format: 'esm',
   loader: { 
     '.ts': 'ts', 
     '.js': 'js',
