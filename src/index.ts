@@ -55,7 +55,10 @@ const sketch = (p: p5) => {
 };
 
 // Start the sketch
-new p5(sketch);
+const p5Instance = new p5(sketch);
+p5Instance.noLoop(); // Prevent continuous drawing unless needed
+
+(window as any).p5Instance = p5Instance; // Make p5 instance globally accessible
 
 // Initialize the editor modal
 const editorModal = new Modal('editor-modal', 'Elevator Algorithm Editor');
@@ -76,7 +79,24 @@ window.addEventListener('load', () => {
   // Set up the edit algorithm button
   const editAlgorithmButton = document.getElementById('edit-algorithm');
   if (editAlgorithmButton) {
-    editAlgorithmButton.addEventListener('click', () => {
+    editAlgorithmButton.addEventListener('click', async () => {
+      // Get the currently selected algorithm
+      const algorithmsDropdown = document.getElementById('algorithm-select') as HTMLSelectElement;
+      const selectedAlgorithmId = algorithmsDropdown?.value;
+      
+      // Import the isCustomAlgorithm function
+      const { isCustomAlgorithm } = await import('./algorithms/scripts/register');
+      
+      // Check if it's a custom algorithm (user-created)
+      if (selectedAlgorithmId && isCustomAlgorithm(selectedAlgorithmId)) {
+        // Load this specific algorithm's code
+        await editor.loadAlgorithmByName(selectedAlgorithmId);
+      } else {
+        // For built-in algorithms, load the template
+        await editor.resetCode();
+      }
+      
+      // Open the editor modal
       editorModal.open();
     });
   }
@@ -100,11 +120,14 @@ window.addEventListener('load', () => {
           const elevatorSystem = window.simulationBuilding.getElevatorSystem();
           const algorithmManager = elevatorSystem.getAlgorithmManager();
           
-          // Register the custom algorithm with fixed ID
+          // Register the custom algorithm
           algorithmManager.registerAlgorithm(customAlgorithm);
           
-          // Save the algorithm code to localStorage for persistence
-          localStorage.setItem('elevatorAlgorithmCode', code);
+          // Import the saveCustomAlgorithm function
+          const { saveCustomAlgorithm } = await import('./algorithms/scripts/register');
+          
+          // Save the algorithm code with its name as the identifier
+          saveCustomAlgorithm(customAlgorithm.name, code);
           
           // Debug: Log all registered algorithms
           algorithmManager.debugAlgorithms();
@@ -122,9 +145,6 @@ window.addEventListener('load', () => {
             // Reset the simulation to ensure the new algorithm takes effect
             console.debug("Resetting simulation to apply custom algorithm");
             simulation.reset(uiController.getSimulationSettings());
-            
-            // Show success notification
-            alert('Algorithm applied and simulation reset successfully!');
             
             // Close the modal
             editorModal.close();

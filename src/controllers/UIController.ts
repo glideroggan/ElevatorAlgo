@@ -104,9 +104,21 @@ export class UIController {
       if (isPaused) {
         simulation.play();
         this.updatePlayPauseButton(false);
+        // resume the p5 draw loop to allow for updates
+        const p5Instance = (window as any).p5Instance;
+        if (p5Instance) {
+          console.log('Resuming p5 loop');  
+          p5Instance.loop();
+        }
       } else {
         simulation.pause();
         this.updatePlayPauseButton(true);
+        // pause the p5 draw loop to avoid double updates
+        const p5Instance = (window as any).p5Instance;
+        if (p5Instance) {
+          console.log('Pausing p5 loop');
+          p5Instance.noLoop();
+        }
       }
     });
 
@@ -304,6 +316,7 @@ export class UIController {
 
             // Highlight this algorithm in the results table
             this.resultsPanel.setCurrentAlgorithm(id);
+            
           }
         };
 

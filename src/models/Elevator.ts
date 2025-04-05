@@ -1,8 +1,9 @@
 import p5 from 'p5';
 import { Person } from './Person';
 import { ElevatorSystem } from './ElevatorSystem';
+import { ElevatorStatusState } from '../algorithms/IElevatorAlgorithm';
 
-export type ElevatorStatusState = 'IDLE' | 'MOVING_UP' | 'MOVING_DOWN' | 'LOADING' | 'REPAIR';
+
 
 export interface ElevatorState {
   id: number;

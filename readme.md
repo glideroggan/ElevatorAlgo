@@ -1,14 +1,15 @@
 # TODO
-- check if we can make a nicer imports of the needed scripts in the evaluator, with for example json imports
+- get it deployed
+- ✔️The pause button should pause the p5 sketch, so rendering too
 - add energy as a factor
   - elevator that goes down uses less energy than elevator that goes up
 - Code editor
-  - a simple template is always the start
-  - remeber last code in local storage
+  - ✔️a simple template is always the start
+  - ✔️remeber last code in local storage
   - upload to server?
     - how bad is this for other users? what bad things could you add?
-  - syntax highlighting?
-  - how do we locally run it?
+  - ✔️syntax highlighting?
+  - ✔️how do we locally run it?
 
 # BUG
 

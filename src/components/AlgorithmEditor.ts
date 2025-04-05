@@ -120,9 +120,9 @@ export class AlgorithmEditor {
     resetButton.onclick = () => this.resetCode();
     
     // Load example dropdown
-    const exampleLabel = document.createElement('label');
-    exampleLabel.textContent = 'Load example:';
-    exampleLabel.className = 'example-label';
+    // const exampleLabel = document.createElement('label');
+    // exampleLabel.textContent = 'Load example:';
+    // exampleLabel.className = 'example-label';
     
     const exampleSelect = document.createElement('select');
     exampleSelect.className = 'example-select';
@@ -135,13 +135,13 @@ export class AlgorithmEditor {
       exampleSelect.appendChild(option);
     });
     
-    exampleSelect.onchange = (e) => {
-      const selectedIndex = parseInt((e.target as HTMLSelectElement).value);
-      this.loadExample(0);
-    };
+    // exampleSelect.onchange = (e) => {
+    //   const selectedIndex = parseInt((e.target as HTMLSelectElement).value);
+    //   this.loadExample(0);
+    // };
     
-    controlsContainer.appendChild(exampleLabel);
-    controlsContainer.appendChild(exampleSelect);
+    // controlsContainer.appendChild(exampleLabel);
+    // controlsContainer.appendChild(exampleSelect);
     controlsContainer.appendChild(saveButton);
     controlsContainer.appendChild(resetButton);
     
@@ -155,21 +155,10 @@ export class AlgorithmEditor {
     }
   }
 
-  private async resetCode(): Promise<void> {
+  public async resetCode(): Promise<void> {
     if (this.editor) {
         const code = await this.loadTemplateCode()
       this.editor.setValue(code);
-    }
-  }
-
-  private async loadExample(index: number=0): Promise<void> {
-    if (!this.editor) return;
-    
-    switch (index) {
-      case 0:
-        const code = await this.loadTemplateCode();
-        this.editor.setValue(code);
-        break;
     }
   }
 
@@ -185,5 +174,26 @@ export class AlgorithmEditor {
 
   public getValue(): string {
     return this.editor ? this.editor.getValue() : '';
+  }
+
+  /**
+   * Load algorithm code by name 
+   */
+  public async loadAlgorithmByName(name: string): Promise<boolean> {
+    if (!this.editor) return false;
+    
+    // Import the getCustomAlgorithmCode function
+    const { getCustomAlgorithmCode } = await import('../algorithms/scripts/register');
+    
+    const code = getCustomAlgorithmCode(name);
+    if (code) {
+      this.editor.setValue(code);
+      return true;
+    }
+    
+    // If algorithm not found, load template
+    const templateCode = await this.loadTemplateCode();
+    this.editor.setValue(templateCode);
+    return false;
   }
 }

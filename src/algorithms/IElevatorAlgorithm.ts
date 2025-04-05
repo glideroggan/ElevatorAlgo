@@ -1,4 +1,4 @@
-import { ElevatorStatusState } from '../models/Elevator';
+export type ElevatorStatusState = 'IDLE' | 'MOVING_UP' | 'MOVING_DOWN' | 'LOADING' | 'REPAIR';
 
 // Data types to expose clean data to algorithms without internal references
 export interface ElevatorData {
