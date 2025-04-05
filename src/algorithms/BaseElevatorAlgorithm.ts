@@ -2,10 +2,7 @@ import {
   IElevatorAlgorithm, 
   ElevatorData, 
   PersonData, 
-  BuildingData,
-  FloorStats
-} from './IElevatorAlgorithm';
-import { ElevatorState } from '../models/Elevator';
+  BuildingData} from './IElevatorAlgorithm';
 
 /**
  * Base class for elevator algorithms that provides helpful utility methods
@@ -53,9 +50,9 @@ export abstract class BaseElevatorAlgorithm implements IElevatorAlgorithm {
    * Calculates the travel distance to a floor considering elevator's current state
    */
   protected calculateDistanceToFloor(elevator: ElevatorData, floor: number): number {
-    if (elevator.state === ElevatorState.IDLE) {
+    if (elevator.state === 'IDLE') {
       return Math.abs(elevator.currentFloor - floor);
-    } else if (elevator.state === ElevatorState.MOVING_UP) {
+    } else if (elevator.state === 'MOVING_UP') {
       if (floor >= elevator.currentFloor) {
         return floor - elevator.currentFloor;
       } else {
@@ -64,7 +61,7 @@ export abstract class BaseElevatorAlgorithm implements IElevatorAlgorithm {
           (elevator.targetFloor! - floor)
         );
       }
-    } else if (elevator.state === ElevatorState.MOVING_DOWN) {
+    } else if (elevator.state === 'MOVING_DOWN') {
       if (floor <= elevator.currentFloor) {
         return elevator.currentFloor - floor;
       } else {
@@ -82,7 +79,7 @@ export abstract class BaseElevatorAlgorithm implements IElevatorAlgorithm {
    * Does NOT check if the floor is part of the elevator's route
    */
   protected isFloorInSameDirection(elevator: ElevatorData, floor: number): boolean {
-    if (elevator.state === ElevatorState.IDLE) return true;
+    if (elevator.state === 'IDLE') return true;
     
     const currentFloor = elevator.currentFloor;
     const direction = elevator.direction;
@@ -117,3 +114,5 @@ export abstract class BaseElevatorAlgorithm implements IElevatorAlgorithm {
     }).filter(stat => stat.waitingCount > 0 || stat.isInVisitList);
   }
 }
+
+export default BaseElevatorAlgorithm;

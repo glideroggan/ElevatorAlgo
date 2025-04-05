@@ -5,49 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Elevator Algorithm Simulation</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- <style>
-    /* Add compact styling for controls */
-    .controls-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px; /* Reduced from larger value */
+  
+<script type="importmap">
+    {
+      "imports": {
+        "@elevator-base": "./algorithms/BaseElevatorAlgorithm.js"
+      }
     }
-    
-    .control-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 5px; /* Reduced margin */
-    }
-    
-    .control-label {
-      min-width: 120px; /* Fixed width for labels */
-      margin-right: 0;
-    }
-    
-    .control-input {
-      width: 80px; /* Standardized input width */
-    }
-    
-    button {
-      margin: 5px 3px; /* Reduced button margins */
-      padding: 5px 10px; /* Smaller padding */
-    }
-    
-    /* Make algorithm selector more compact */
-    #algorithm-selector {
-      margin: 5px 0;
-    }
-    
-    /* Remove excess whitespace around headings */
-    h2 {
-      margin: 10px 0 5px 0;
-    }
-  </style> -->
+  </script>
+  
+  <!-- Add Monaco Editor from CDN -->
+  <link rel="stylesheet" data-name="vs/editor/editor.main" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css">
+  
+  <script>
+    // Monaco loader configuration
+    var require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.nls.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.js"></script>
+  
+  <!-- Add TypeScript compiler from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/typescript@latest/lib/typescript.min.js"></script>
 </head>
 <body>
   <div class="container">
     <div class="simulation-section">
-      <div id="canvas-container"></div>
+      <div class="canvas-area">
+        <div id="canvas-container"></div>
+        <div class="simulation-controls">
+          <button id="play-pause-button" class="control-button play-button">
+            <span id="play-icon">▶</span>
+            <span id="pause-icon" style="display:none;">⏸</span>
+          </button>
+          <button id="step-button" class="control-button">Step</button>
+          <span class="simulation-status">Status: <span id="simulation-status-text">Paused</span></span>
+        </div>
+      </div>
       
       <div class="controls-panel">
         <div class="controls-container">
@@ -82,6 +77,15 @@
             <input class="control-input" type="range" id="elevator-capacity" min="1" max="15" value="8">
             <span id="elevator-capacity-value">8</span>
           </div>
+
+          <div class="control-group">
+            <label class="control-label" for="simulation-seed">Simulation Seed:</label>
+            <div class="seed-input-group">
+              <input class="control-input" type="number" id="simulation-seed">
+              <button id="random-seed" class="small-button" title="Generate random seed">🎲</button>
+            </div>
+            <span id="seed-value">12345</span>
+          </div>
           
           <div class="control-group">
             <label class="control-label" for="algorithm-select">Elevator Algorithm:</label>
@@ -91,6 +95,7 @@
           
           <div class="button-group" style="display: flex; gap: 5px;">
             <button id="reset-simulation">Reset Simulation</button>
+            <button id="edit-algorithm" class="edit-algorithm-button">Edit Algorithm</button>
           </div>
         </div>
       </div>
@@ -175,6 +180,6 @@
     </div>
   </div>
 
-  <script src="bundle.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ import {
   FloorStats
 } from '../IElevatorAlgorithm';
 import { BaseElevatorAlgorithm } from '../BaseElevatorAlgorithm';
-import { ElevatorState } from '../../models/Elevator';
+import { ElevatorStatusState } from '../../models/Elevator';
 
 /**
  * Default elevator algorithm with enhanced wait time prioritization
@@ -204,7 +204,7 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
     const passbyBonus = this.isFloorInSameDirection(elevator, pickupFloor) ? 800 : 0;
     
     // Idle elevators get a bonus (to distribute work better)
-    const idleBonus = elevator.state === ElevatorState.IDLE ? 300 : 0;
+    const idleBonus = elevator.state === 'IDLE' ? 300 : 0;
     
     // Penalize elevators that already have many stops to make
     const busyPenalty = -elevator.floorsToVisit.length * 50;
@@ -252,11 +252,14 @@ export class DefaultElevatorAlgorithm extends BaseElevatorAlgorithm {
                       journeyScore + idleBonus + busyPenalty + passbyBonus + 
                       waitTimeScore;
     
+    if (isNaN(totalScore)) {
+      console.error(`Invalid score calculation for elevator ${elevator.id + 1}:`)
+    }
     return totalScore;
   }
   
   private getDirectionScore(elevator: ElevatorData, floor: number): number {
-    if (elevator.state === ElevatorState.IDLE) {
+    if (elevator.state === 'IDLE') {
       return 0; // No direction preference for idle elevators
     }
     

@@ -1,4 +1,4 @@
-import { StatsTracker, SimulationResult } from '../stats/StatsTracker';
+import { StatsTracker } from '../stats/StatsTracker';
 
 export class ResultsPanel {
   private tableBody: HTMLElement;
@@ -54,9 +54,27 @@ export class ResultsPanel {
         row.classList.add('current-algorithm');
       }
 
-      // Format time
-      const date = new Date(result.timestamp);
-      const timeString = `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+      // Format age instead of time
+      const now = Date.now();
+      const ageInMs = now - result.timestamp;
+      let ageString = '';
+      
+      if (ageInMs < 60000) {
+        // Less than a minute
+        ageString = 'Just now';
+      } else if (ageInMs < 3600000) {
+        // Less than an hour
+        const minutes = Math.floor(ageInMs / 60000);
+        ageString = `${minutes}m ago`;
+      } else if (ageInMs < 86400000) {
+        // Less than a day
+        const hours = Math.floor(ageInMs / 3600000);
+        ageString = `${hours}h ago`;
+      } else {
+        // More than a day
+        const days = Math.floor(ageInMs / 86400000);
+        ageString = `${days}d ago`;
+      }
 
       // Format config
       const configString = `${result.settings.numberOfLanes}E, ${result.settings.numberOfFloors}F, ${result.settings.peopleFlowRate}P`;
@@ -69,7 +87,7 @@ export class ResultsPanel {
 
       // Add cells
       row.innerHTML = `
-        <td>${timeString}</td>
+        <td>${ageString}</td>
         <td>${result.algorithmName}</td>
         <td>${configString}</td>
         <td>${result.stats.peopleServed}</td>

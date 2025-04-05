@@ -1,9 +1,17 @@
 # TODO
-- 🔧Clean up elevator class, its too big and too messy
-- instead of writing out the time in the results, write the age, how long ago the result was published
+- get it deployed
+- ✔️The pause button should pause the p5 sketch, so rendering too
+- add energy as a factor
+  - elevator that goes down uses less energy than elevator that goes up
+- Code editor
+  - ✔️a simple template is always the start
+  - ✔️remeber last code in local storage
+  - upload to server?
+    - how bad is this for other users? what bad things could you add?
+  - ✔️syntax highlighting?
+  - ✔️how do we locally run it?
 
 # BUG
-- When an elevator gets "stuck", we should print out more debug information
 
 
 # description
@@ -25,31 +33,29 @@ How do you "play" the game?
     
 
 ## rendering
-- We want to visualize the wait time at floors when they are pressed
+- ✔️We want to visualize the wait time at floors when they are pressed
 
 ## requirements
-- typescript
-- canvas
+- ✔️typescript
+- ✔️canvas
     - use p5.js
-- controllers on the page to adjust settings
+- ✔️controllers on the page to adjust settings
     - lanes
     - floors
     - flow of people
     - time it takes to go from one floor to another
     - how many people each elevator can carry
 ## set values
-- one elevator per lane
-- there are no buttons inside the elevator
+- ✔️one elevator per lane
+- ✔️there are no buttons inside the elevator
 ## factors
-- ppl each elevator can carry
-- time it takes to go from one floor to another
+- ✔️ppl each elevator can carry
+- ✔️time it takes to go from one floor to another
 - if ppl come as a group, they will not split
   - maybe this can be a setting?
 - group of ppl is harder?
 ## Things we need to keep track of
-- number of lanes
-- number of floors
-- time since floor x was pressed
-- how many times floor x was pressed
-  once an elevator reaches floor x, it will reset the count and the time pressed on that floor
+- ✔️number of lanes
+- ✔️number of floors
+- ✔️time since floor x was pressed
 
