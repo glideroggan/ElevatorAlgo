@@ -94,12 +94,61 @@ export class AlgorithmEditor {
   }
 
   private async addTypeDefinitions(monaco: any): Promise<void> {
-    // TODO: add these via fetch instead
-    const content = await fetch('/algorithms/IElevatorAlgorithm.d.ts')
-    if (content.ok) {
-        const text = await content.text();
-        monaco.languages.typescript.typescriptDefaults.addExtraLib(text)
-        console.debug("Type definitions added successfully.");
+    try {
+      // Load both interface and base class definitions
+      const interfaceContent = await fetch('/algorithms/IElevatorAlgorithm.d.ts');
+      const baseClassContent = await fetch('/algorithms/BaseElevatorAlgorithm.d.ts');
+      
+      if (interfaceContent.ok && baseClassContent.ok) {
+        const interfaceText = await interfaceContent.text();
+        const baseClassText = await baseClassContent.text();
+        
+        // Configure compiler options first - this is important
+        monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+          ...monaco.languages.typescript.typescriptDefaults.getCompilerOptions(),
+          allowSyntheticDefaultImports: true,
+          esModuleInterop: true,
+          noImplicitAny: true,
+          strict: true
+        });
+        
+        // Add declarations directly to Monaco's TypeScript service
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(interfaceText, 'ts:filename/IElevatorAlgorithm.d.ts');
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(baseClassText, 'ts:filename/BaseElevatorAlgorithm.d.ts');
+        
+        // Add module declaration for @elevator-base (simpler approach)
+        const baseModuleContent = `
+          declare module "@elevator-base" {
+            ${baseClassText}
+            export default BaseElevatorAlgorithm;
+          }
+        `;
+        
+        // Add module declaration for @elevator-interfaces with direct re-exports
+        const interfaceModuleContent = `
+          declare module "@elevator-interfaces" {
+            ${interfaceText}
+            export { 
+              ElevatorStatusState,
+              ElevatorData, 
+              PersonData, 
+              ElevatorWaitingStats,
+              FloorStats,
+              BuildingData,
+              IElevatorAlgorithm
+            }
+          }
+        `;
+        
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(baseModuleContent, 'ts:filename/@elevator-base.d.ts');
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(interfaceModuleContent, 'ts:filename/@elevator-interfaces.d.ts');
+        
+        console.log("Type definitions added successfully.");
+      } else {
+        console.error("Failed to fetch type definitions");
+      }
+    } catch (error) {
+      console.error("Error loading type definitions:", error);
     }
   }
 

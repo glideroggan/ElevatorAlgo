@@ -1,5 +1,7 @@
+// /// <reference path="/node_modules/@types/elevator-algorithms/index.d.ts" />
 import { BaseElevatorAlgorithm } from "@elevator-base";
-import { PersonData, BuildingData, ElevatorData } from "../IElevatorAlgorithm";
+// TODO: let these also come from same namespace as above
+import { PersonData, BuildingData, ElevatorData, FloorStats } from "@elevator-interfaces";
 
 /**
  * Example Elevator Algorithm Implementation

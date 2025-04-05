@@ -13,6 +13,7 @@
     "paths": {
       "*": ["node_modules/*"],
       "@elevator-base": ["src/algorithms/BaseElevatorAlgorithm.ts"],
+      "@elevator-interfaces": ["src/algorithms/IElevatorAlgorithm.ts"],
     }
   },
   "include": ["src/**/*"],

@@ -20,7 +20,8 @@ const context = await build.context({
   entryPoints: [
     'src/index.ts',
     'src/algorithms/scripts/example.ts',
-    'src/algorithms/BaseElevatorAlgorithm.ts'  
+    'src/algorithms/BaseElevatorAlgorithm.ts',
+    'src/algorithms/IElevatorAlgorithm.ts',
   ],
   bundle: true,
   outdir: 'dist', // Change from outfile to outdir since we have multiple outputs
@@ -35,7 +36,7 @@ const context = await build.context({
     '.css': 'text',
     '.html': 'text'
   },
-  external: ['@elevator-base'],
+  external: ['@elevator-base', '@elevator-interfaces'],
   plugins: [
     copy({
       assets: [
