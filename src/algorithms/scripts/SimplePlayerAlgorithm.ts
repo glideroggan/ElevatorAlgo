@@ -1,4 +1,3 @@
-import { ElevatorStatusState } from '../../models/Elevator';
 import { BaseElevatorAlgorithm } from '../BaseElevatorAlgorithm';
 import { BuildingData, ElevatorData, PersonData } from '../IElevatorAlgorithm';
 

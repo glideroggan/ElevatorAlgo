@@ -1,4 +1,4 @@
-import { Elevator, ElevatorStatusState } from './Elevator';
+import { Elevator } from './Elevator';
 import { Person } from './Person';
 import { AlgorithmManager } from '../algorithms/AlgorithmManager';
 import { 

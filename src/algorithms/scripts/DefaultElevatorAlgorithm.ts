@@ -5,7 +5,6 @@ import {
   FloorStats
 } from '../IElevatorAlgorithm';
 import { BaseElevatorAlgorithm } from '../BaseElevatorAlgorithm';
-import { ElevatorStatusState } from '../../models/Elevator';
 
 /**
  * Default elevator algorithm with enhanced wait time prioritization
